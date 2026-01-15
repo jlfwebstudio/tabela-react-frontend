@@ -123,7 +123,7 @@ function App() {
           return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         }
         if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+          return sortConfig.direction === 'ascending' ? aValue - bValue : bBValue - aValue;
         }
         return 0;
       });
@@ -232,7 +232,7 @@ function App() {
     setError(null);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file); // <-- CORREÇÃO AQUI: Mudado de 'csvFile' para 'file'
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
