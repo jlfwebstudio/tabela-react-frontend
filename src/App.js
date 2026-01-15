@@ -1,5 +1,5 @@
 // frontend/src/App.js
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'; // Adicionado useMemo aqui
 import axios from 'axios';
 import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
@@ -23,7 +23,8 @@ function App() {
   const [selectedFileName, setSelectedFileName] = useState('');
 
   // Define os cabeçalhos da tabela na ordem desejada
-  const tableHeaders = [
+  // ENVOLVIDO EM useMemo para estabilizar a array e resolver o erro do ESLint
+  const tableHeaders = useMemo(() => [
     'Chamado',
     'Numero Referencia',
     'Contratante',
@@ -36,16 +37,17 @@ function App() {
     'Técnico',
     'Prestador',
     'Justificativa do Abono'
-  ];
+  ], []); // Array de dependências vazia para criar apenas uma vez
 
   // Status permitidos para exibição e filtro
-  const allowedStatuses = [
-    'EM CAMPO',
+  // ENVOLVIDO EM useMemo para estabilizar a array e resolver o erro do ESLint
+  const allowedStatuses = useMemo(() => [
     'ENCAMINHADA',
+    'EM TRANSFERÊNCIA',
+    'EM CAMPO',
     'REENCAMINHADO',
-    'PROCEDIMENTO TÉCNICO',
-    'EM TRANSFERÊNCIA'
-  ];
+    'PROCEDIMENTO TÉCNICO'
+  ], []); // Array de dependências vazia para criar apenas uma vez
 
   // Função para normalizar strings para comparação (maiúsculas, sem acentos, trim)
   const normalizeForComparison = useCallback((str) => {
@@ -63,6 +65,7 @@ function App() {
     if (normalized.includes('REENCAMINHADO')) return 'REENCAMINHADO';
     if (normalized.includes('PROCEDIMENTO TECNICO')) return 'PROCEDIMENTO TÉCNICO';
     if (normalized.includes('EM TRANSFERENCIA')) return 'EM TRANSFERÊNCIA';
+    // Se não houver mapeamento específico, retorna o status normalizado
     return normalized;
   }, []);
 
@@ -132,8 +135,7 @@ function App() {
     }
 
     setFilteredData(currentFilteredData);
-  }, [data, activeFilters, sortConfig, normalizeForComparison, normalizeStatusValue, normalizeDate, allowedStatuses]);
-
+  }, [data, activeFilters, sortConfig, normalizeForComparison, normalizeStatusValue, normalizeDate, allowedStatuses]); // allowedStatuses adicionado aqui para o ESLint
 
   // Efeito para calcular o contador de OSs em atraso (Data Limite < hoje)
   useEffect(() => {
@@ -144,13 +146,16 @@ function App() {
     filteredData.forEach(row => {
       const dataLimiteStr = row['Data Limite'];
       const dataLimite = normalizeDate(dataLimiteStr);
+      const justificativa = row['Justificativa do Abono'];
 
-      if (dataLimite && dataLimite.getTime() < today.getTime()) {
+      // Conta apenas se a data limite passou E a justificativa NÃO for "FALTA ABONAR" (ou vazia)
+      // Ou seja, se a justificativa está preenchida, não conta como "em atraso" para o contador
+      if (dataLimite && dataLimite.getTime() < today.getTime() && isJustificativaVazia(justificativa)) {
         count++;
       }
     });
     setOverdueCount(count);
-  }, [filteredData, normalizeDate]); // Recalcula quando filteredData muda
+  }, [filteredData, normalizeDate]); // isJustificativaVazia adicionado aqui para o ESLint
 
   // Função para lidar com o upload do arquivo
   const handleFileUpload = async (event) => {
@@ -165,8 +170,11 @@ function App() {
     const formData = new FormData();
     formData.append('csvFile', file); // O nome do campo deve ser 'csvFile' conforme o backend
 
+    // Usa a variável de ambiente do Vercel para a URL do backend
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
     try {
-      const response = await axios.post('http://localhost:3001/upload', formData, {
+      const response = await axios.post(`${API_URL}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -302,7 +310,8 @@ function App() {
   }, [normalizeForComparison]);
 
   // Função para determinar a classe CSS da linha com base na Data Limite
-  const getRowClassByDataLimite = useCallback((dataLimiteStr) => {
+  const getRowClassByDataLimite = useCallback((row) => { // Recebe a linha inteira para verificar justificativa
+    const dataLimiteStr = row['Data Limite'];
     const dataLimite = normalizeDate(dataLimiteStr);
     if (!dataLimite) return '';
 
@@ -312,13 +321,20 @@ function App() {
     // Compara apenas a data (ignorando a hora)
     const dataLimiteOnly = new Date(dataLimite.getFullYear(), dataLimite.getMonth(), dataLimite.getDate());
 
-    if (dataLimiteOnly.getTime() < today.getTime()) {
-      return 'overdue-row'; // Data limite passada (vermelho)
-    } else if (dataLimiteOnly.getTime() === today.getTime()) {
-      return 'due-today-row'; // Data limite é hoje (amarelo)
+    // Se a data limite passou E a justificativa está vazia, a linha é vermelha forte
+    if (dataLimiteOnly.getTime() < today.getTime() && isJustificativaVazia(row['Justificativa do Abono'])) {
+      return 'overdue-row-strong'; // Vermelho mais forte para atrasado e sem abono
+    }
+    // Se a data limite passou E a justificativa NÃO está vazia, a linha é vermelha normal
+    else if (dataLimiteOnly.getTime() < today.getTime()) {
+      return 'overdue-row'; // Vermelho normal para atrasado mas com abono
+    }
+    // Se a data limite é hoje
+    else if (dataLimiteOnly.getTime() === today.getTime()) {
+      return 'due-today-row'; // Amarelo sutil para vencendo hoje
     }
     return ''; // Nenhuma classe especial
-  }, [normalizeDate]);
+  }, [normalizeDate, isJustificativaVazia]);
 
   // Função para obter o conteúdo da célula e a classe CSS
   const getCellContentAndClassName = useCallback((row, header) => {
@@ -346,7 +362,7 @@ function App() {
       // Se a data limite passou E a justificativa está vazia, exibe "FALTA ABONAR" em roxo
       if (dataLimiteOnly && dataLimiteOnly.getTime() < today.getTime() && isJustificativaVazia(content)) {
         content = 'FALTA ABONAR';
-        className = 'falta-abonar';
+        className = 'falta-abonar'; // Classe para roxo
       }
     }
 
@@ -361,7 +377,23 @@ function App() {
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(filteredData, { header: tableHeaders });
+    // Mapeia os cabeçalhos para o formato que o XLSX.utils.json_to_sheet espera
+    const headerMap = tableHeaders.reduce((acc, header) => {
+      acc[header] = header; // Mantém o mesmo nome para o cabeçalho
+      return acc;
+    }, {});
+
+    // Prepara os dados para exportação, aplicando as mesmas transformações visuais
+    const dataForExport = filteredData.map(row => {
+      const newRow = {};
+      tableHeaders.forEach(header => {
+        const { content } = getCellContentAndClassName(row, header);
+        newRow[header] = content;
+      });
+      return newRow;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataForExport, { header: tableHeaders });
 
     // Estilos para o cabeçalho
     const headerStyle = {
@@ -401,23 +433,27 @@ function App() {
             bottom: { style: "thin", color: { rgb: "4A4A6A" } },
             left: { style: "thin", color: { rgb: "4A4A6A" } },
             right: { style: "thin", color: { rgb: "4A4A6A" } },
-          }
+          },
+          font: { color: { rgb: "E0E0E0" } } // Cor da fonte padrão
         };
 
         // Cor de fundo da linha (vermelho/amarelo)
-        if (dataLimiteOnly && dataLimiteOnly.getTime() < today.getTime()) {
-          cellStyle.fill = { fgColor: { rgb: "FFCCCC" } }; // Vermelho claro para atrasado
-        } else if (dataLimiteOnly && dataLimiteOnly.getTime() === today.getTime()) {
-          cellStyle.fill = { fgColor: { rgb: "FFFFCC" } }; // Amarelo claro para vencendo hoje
+        // Usando as mesmas classes CSS para consistência de cores
+        const rowClass = getRowClassByDataLimite(row);
+
+        if (rowClass === 'overdue-row-strong') {
+          cellStyle.fill = { fgColor: { rgb: "FF0000" } }; // Vermelho forte
+        } else if (rowClass === 'overdue-row') {
+          cellStyle.fill = { fgColor: { rgb: "FF6666" } }; // Vermelho normal
+        } else if (rowClass === 'due-today-row') {
+          cellStyle.fill = { fgColor: { rgb: "FFFF99" } }; // Amarelo sutil
         } else {
           cellStyle.fill = { fgColor: { rgb: "2A2A4A" } }; // Cor padrão da linha (fundo da tabela)
-          cellStyle.font = { color: { rgb: "E0E0E0" } }; // Cor da fonte padrão
         }
-
 
         // Cor roxa para "FALTA ABONAR" (sobrescreve a cor da linha)
         if (header === 'Justificativa do Abono') {
-          const { content } = getCellContentAndClassName(row, header); // Reutiliza a lógica para obter o conteúdo formatado
+          const { content } = getCellContentAndClassName(row, header);
           if (content === 'FALTA ABONAR') {
             cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true }; // Texto branco e negrito
             cellStyle.fill = { fgColor: { rgb: "800080" } }; // Roxo
@@ -429,9 +465,27 @@ function App() {
     });
 
     // Ajusta a largura das colunas
-    const wscols = tableHeaders.map(header => ({
-      wch: Math.max(header.length, ...filteredData.map(row => String(row[header] || '').length)) + 2
-    }));
+    const wscols = tableHeaders.map(header => {
+      let minWidth = header.length; // Largura mínima baseada no cabeçalho
+      // Larguras específicas para colunas que precisam de mais espaço
+      if (header === 'Serviço') minWidth = 25;
+      if (header === 'Contratante') minWidth = 18;
+      if (header === 'Status') minWidth = 18;
+      if (header === 'Justificativa do Abono') minWidth = 30;
+      if (header === 'Técnico') minWidth = 20;
+      if (header === 'Prestador') minWidth = 25;
+      if (header === 'Cidade') minWidth = 15;
+      if (header === 'CNPJ / CPF') minWidth = 18;
+      if (header === 'Numero Referencia') minWidth = 15; // Reduzido um pouco
+      if (header === 'Data Limite') minWidth = 15; // Ajustado para DD/MM/YYYY
+
+      // Encontra a largura máxima do conteúdo da coluna
+      const contentWidth = Math.max(...filteredData.map(row => String(row[header] || '').length));
+
+      return {
+        wch: Math.max(minWidth, contentWidth) + 2 // Adiciona um padding
+      };
+    });
     ws['!cols'] = wscols;
 
     const wb = XLSX.utils.book_new();
@@ -439,7 +493,7 @@ function App() {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(dataBlob, 'relatorio_oss.xlsx');
-  }, [filteredData, tableHeaders, getCellContentAndClassName, normalizeDate]);
+  }, [filteredData, tableHeaders, getCellContentAndClassName, normalizeDate, getRowClassByDataLimite]);
 
 
   return (
@@ -522,7 +576,7 @@ function App() {
             </thead>
             <tbody>
               {filteredData.map((row, rowIndex) => (
-                <tr key={rowIndex} className={getRowClassByDataLimite(row['Data Limite'])}>
+                <tr key={rowIndex} className={getRowClassByDataLimite(row)}> {/* Passa a linha inteira */}
                   {tableHeaders.map((header) => {
                     const { content, className } = getCellContentAndClassName(row, header);
                     return (

@@ -117,11 +117,10 @@ input[type="file"] {
 
 /* Botão de Exportar */
 .export-button {
-  background-color: #28a745; /* Verde para exportar */
+  background-color: #28a745; /* Verde vibrante */
   color: white;
   padding: 14px 25px;
   border-radius: 8px;
-  border: none;
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s ease, transform 0.2s ease;
@@ -137,18 +136,20 @@ input[type="file"] {
 }
 
 .export-button:disabled {
-  background-color: #6c757d; /* Cinza quando desabilitado */
+  background-color: #6c757d; /* Cinza para desabilitado */
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-/* Mensagens de Carregamento e Erro */
+/* Mensagens de Feedback */
 .loading-message, .error-message {
-  text-align: center;
-  padding: 20px;
+  width: 100%;
+  max-width: 1400px;
+  padding: 15px;
   border-radius: 8px;
-  margin-top: 20px;
+  text-align: center;
   font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .loading-message {
@@ -157,60 +158,58 @@ input[type="file"] {
 }
 
 .error-message {
-  background-color: #8B0000; /* Vermelho escuro */
+  background-color: #dc3545;
   color: white;
 }
 
-/* Tabela de Dados */
+/* Estilos para a tabela */
 .data-table-container {
-  overflow-x: auto; /* Adiciona scroll horizontal se a tabela for muito larga */
+  overflow-x: auto; /* Permite rolagem horizontal se a tabela for muito larga */
+  width: 100%; /* Expande para a largura total da página */
+  max-width: 1400px; /* Mantém o alinhamento com outros elementos */
+  margin: 20px auto;
+  border: 1px solid #4A4A6A; /* Borda da tabela */
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  background-color: #2a2a4a; /* Fundo da tabela */
-  width: 100%;
-  max-width: 1400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .data-table {
-  width: 100%;
-  border-collapse: separate; /* Permite border-spacing */
-  border-spacing: 0; /* Remove espaçamento padrão */
-  min-width: 1200px; /* Largura mínima para evitar quebras de layout */
+  width: 100%; /* Ocupa a largura total do container */
+  border-collapse: collapse;
+  min-width: 1200px; /* Largura mínima para garantir que as colunas tenham espaço */
 }
 
-.data-table th, .data-table td {
-  padding: 12px 15px;
+.data-table th,
+.data-table td {
+  padding: 12px 15px; /* Aumenta o padding para colunas mais largas */
   text-align: left;
-  border-bottom: 1px solid #4a4a6a; /* Borda inferior das células */
-  white-space: nowrap; /* Impede que o texto quebre linha */
+  border-bottom: 1px solid #3A3A5A;
+  white-space: nowrap; /* Evita quebra de linha por padrão */
   overflow: hidden;
-  text-overflow: ellipsis;
-  color: #e0e0e0; /* Cor do texto padrão para células */
+  text-overflow: ellipsis; /* Adiciona reticências se o texto for muito longo */
 }
 
 .data-table th {
-  background-color: #3a3a5a; /* Fundo do cabeçalho */
-  color: #e0e0e0;
+  background-color: #4A4A6A;
+  color: #FFFFFF;
   font-weight: bold;
-  position: sticky; /* Cabeçalho fixo ao rolar */
+  position: sticky;
   top: 0;
-  z-index: 10; /* Garante que o cabeçalho fique acima do conteúdo da tabela */
-  border-top: 1px solid #5a5a7a; /* Borda superior para cabeçalho */
-  border-left: 1px solid #5a5a7a; /* Borda esquerda para cabeçalho */
-  position: relative; /* ESSENCIAL: Define o contexto de posicionamento para o dropdown */
+  z-index: 10;
 }
 
-.data-table th:first-child {
+.data-table td {
+  background-color: #2A2A4A;
+  color: #E0E0E0;
+}
+
+/* Estilos para bordas arredondadas da tabela */
+.data-table thead tr:first-child th:first-child {
   border-top-left-radius: 8px;
 }
 
-.data-table th:last-child {
+.data-table thead tr:first-child th:last-child {
   border-top-right-radius: 8px;
-  border-right: 1px solid #5a5a7a; /* Borda direita para a última coluna do cabeçalho */
-}
-
-.data-table tbody tr:last-child td {
-  border-bottom: none; /* Remove a borda inferior da última linha */
 }
 
 .data-table tbody tr:last-child td:first-child {
@@ -325,34 +324,46 @@ input[type="file"] {
 }
 
 /* Cores condicionais das linhas da tabela */
+/* Mais forte para atrasado sem abono */
+.overdue-row-strong {
+  background-color: #CC0000 !important; /* Vermelho mais intenso */
+  color: #FFFFFF !important; /* Texto branco para contraste */
+}
+
+/* Vermelho normal para atrasado COM abono */
 .overdue-row {
-  background-color: #4a2a2a; /* Vermelho escuro para linhas atrasadas */
+  background-color: #FF6666 !important; /* Vermelho um pouco mais suave */
+  color: #333333 !important; /* Texto escuro para contraste */
 }
 
+/* Amarelo sutil para vencendo hoje */
 .due-today-row {
-  background-color: #4a4a2a; /* Amarelo escuro para linhas vencendo hoje */
+  background-color: #FFFF99 !important; /* Amarelo sutil */
+  color: #333333 !important; /* Texto escuro para contraste */
 }
 
-/* Cor da célula "FALTA ABONAR" */
+/* Cor da célula "FALTA ABONAR" (sobrescreve a cor da linha) */
 .falta-abonar {
-  background-color: #800080; /* Roxo */
-  color: white;
+  background-color: #800080 !important; /* Roxo */
+  color: #FFFFFF !important; /* Texto branco */
   font-weight: bold;
 }
 
 /* Ajustes de largura de coluna (exemplo, ajuste conforme necessário) */
-.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 8%; min-width: 120px; } /* Chamado */
-.data-table th:nth-child(2), .data-table td:nth-child(2) { width: 10%; min-width: 150px; } /* Numero Referencia */
-.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 10%; min-width: 150px; } /* Contratante */
-.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 12%; min-width: 180px; } /* Serviço */
-.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 8%; min-width: 120px; } /* Status */
-.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 8%; min-width: 120px; } /* Data Limite */
-.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 10%; min-width: 150px; } /* Cliente */
-.data-table th:nth-child(8), .data-table td:nth-child(8) { width: 8%; min-width: 120px; } /* CNPJ / CPF */
-.data-table th:nth-child(9), .data-table td:nth-child(9) { width: 8%; min-width: 120px; } /* Cidade */
-.data-table th:nth-child(10), .data-table td:nth-child(10) { width: 8%; min-width: 120px; } /* Técnico */
-.data-table th:nth-child(11), .data-table td:nth-child(11) { width: 8%; min-width: 120px; } /* Prestador */
-.data-table th:nth-child(12), .data-table td:nth-child(12) { width: 12%; min-width: 180px; } /* Justificativa do Abono */
+/* Removi as larguras percentuais e usei apenas min-width para flexibilidade */
+.data-table th:nth-child(1), .data-table td:nth-child(1) { min-width: 100px; } /* Chamado */
+.data-table th:nth-child(2), .data-table td:nth-child(2) { min-width: 130px; } /* Numero Referencia (reduzido um pouco) */
+.data-table th:nth-child(3), .data-table td:nth-child(3) { min-width: 160px; } /* Contratante */
+.data-table th:nth-child(4), .data-table td:nth-child(4) { min-width: 200px; } /* Serviço (mais largo para nomes completos) */
+.data-table th:nth-child(5), .data-table td:nth-child(5) { min-width: 150px; } /* Status */
+.data-table th:nth-child(6), .data-table td:nth-child(6) { min-width: 120px; } /* Data Limite */
+.data-table th:nth-child(7), .data-table td:nth-child(7) { min-width: 150px; } /* Cliente */
+.data-table th:nth-child(8), .data-table td:nth-child(8) { min-width: 160px; } /* CNPJ / CPF (mais largo) */
+.data-table th:nth-child(9), .data-table td:nth-child(9) { min-width: 140px; } /* Cidade (mais largo) */
+.data-table th:nth-child(10), .data-table td:nth-child(10) { min-width: 160px; } /* Técnico */
+.data-table th:nth-child(11), .data-table td:nth-child(11) { min-width: 180px; } /* Prestador */
+.data-table th:nth-child(12), .data-table td:nth-child(12) { min-width: 220px; } /* Justificativa do Abono (mais largo) */
+
 
 /* Media Queries para Responsividade */
 @media (max-width: 1200px) {
