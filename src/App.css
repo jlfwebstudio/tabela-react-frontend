@@ -121,6 +121,7 @@ input[type="file"] {
   color: white;
   padding: 14px 25px;
   border-radius: 8px;
+  border: none;
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.2s ease, transform 0.2s ease;
@@ -136,12 +137,12 @@ input[type="file"] {
 }
 
 .export-button:disabled {
-  background-color: #6c757d; /* Cinza para desabilitado */
+  background-color: #6c757d; /* Cinza para botão desabilitado */
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-/* Mensagens de Feedback */
+/* Mensagens de Status */
 .loading-message, .error-message {
   width: 100%;
   max-width: 1400px;
@@ -158,25 +159,26 @@ input[type="file"] {
 }
 
 .error-message {
-  background-color: #dc3545;
-  color: white;
+  background-color: #6a2a2a;
+  color: #ff6b6b;
 }
 
-/* Estilos para a tabela */
+/* Estilos da Tabela */
 .data-table-container {
   overflow-x: auto; /* Permite rolagem horizontal se a tabela for muito larga */
   width: 100%; /* Expande para a largura total da página */
-  max-width: 1400px; /* Mantém o alinhamento com outros elementos */
+  max-width: 1400px; /* Limita a largura máxima do container */
   margin: 20px auto;
   border: 1px solid #4A4A6A; /* Borda da tabela */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative; /* Necessário para o thead sticky */
 }
 
 .data-table {
   width: 100%; /* Ocupa a largura total do container */
   border-collapse: collapse;
-  min-width: 1200px; /* Largura mínima para garantir que as colunas tenham espaço */
+  min-width: 1600px; /* Aumentado para acomodar colunas mais largas */
 }
 
 .data-table th,
@@ -193,9 +195,9 @@ input[type="file"] {
   background-color: #4A4A6A;
   color: #FFFFFF;
   font-weight: bold;
-  position: sticky;
+  position: sticky; /* Faz o cabeçalho grudar no topo ao rolar */
   top: 0;
-  z-index: 10;
+  z-index: 10; /* Garante que o cabeçalho fique acima do conteúdo */
 }
 
 .data-table td {
@@ -203,27 +205,17 @@ input[type="file"] {
   color: #E0E0E0;
 }
 
-/* Estilos para bordas arredondadas da tabela */
-.data-table thead tr:first-child th:first-child {
-  border-top-left-radius: 8px;
+/* Estilos para o conteúdo do cabeçalho (para ícones de filtro e ordenação) */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
 }
 
-.data-table thead tr:first-child th:last-child {
-  border-top-right-radius: 8px;
-}
-
-.data-table tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 8px;
-}
-
-.data-table tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 8px;
-}
-
-/* Estilos para ordenação */
 .sortable-header {
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 5px;
 }
@@ -233,68 +225,53 @@ input[type="file"] {
   color: #87ceeb;
 }
 
-/* Estilos para o filtro */
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
 .filter-icon {
   cursor: pointer;
-  color: #e0e0e0;
-  padding: 5px;
-  border-radius: 4px;
-  transition: color 0.2s ease, background-color 0.2s ease;
+  color: #bbb;
+  transition: color 0.2s ease;
 }
 
-.filter-icon:hover {
+.filter-icon:hover, .filter-icon.filter-active {
   color: #87ceeb;
-  background-color: #4a4a6a;
 }
 
-.filter-icon.filter-active {
-  color: #87ceeb; /* Cor para indicar que o filtro está ativo */
-}
-
+/* Dropdown de Filtro */
 .filter-dropdown {
-  position: fixed; /* Alterado para fixed para melhor posicionamento */
+  position: absolute;
   background-color: #3a3a5a;
-  border: 1px solid #5a5a7a;
+  border: 1px solid #4A4A6A;
   border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-  padding: 10px;
-  z-index: 100;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  z-index: 100; /* Garante que o dropdown fique acima de tudo */
+  padding: 15px;
   min-width: 220px;
-  max-height: 300px; /* Altura máxima para scroll */
+  max-height: 300px; /* Altura máxima para rolagem */
+  overflow-y: auto; /* Adiciona rolagem vertical se muitos itens */
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .filter-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   max-height: 200px; /* Altura máxima para a lista de opções */
-  overflow-y: auto; /* Adiciona scroll se houver muitas opções */
+  overflow-y: auto; /* Rolagem para as opções */
   padding-right: 5px; /* Espaço para a barra de rolagem */
 }
 
 .filter-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 0;
+  gap: 10px;
   cursor: pointer;
   color: #e0e0e0;
 }
 
-.filter-option:hover {
-  background-color: #4a4a6a;
-  border-radius: 4px;
-}
-
 .filter-option input[type="checkbox"] {
   accent-color: #87ceeb; /* Cor do checkbox */
+  cursor: pointer;
 }
 
 .filter-actions {
@@ -302,7 +279,7 @@ input[type="file"] {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
-  border-top: 1px solid #4a4a6a;
+  border-top: 1px solid #4A4A6A;
   padding-top: 10px;
 }
 
@@ -313,9 +290,8 @@ input[type="file"] {
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.85em;
   transition: background-color 0.2s ease;
-  flex: 1 1 auto; /* Permite que os botões se ajustem e quebrem linha */
+  flex-grow: 1; /* Para que os botões ocupem o espaço */
   min-width: 48%; /* Para ter 2 botões por linha em telas pequenas */
 }
 
@@ -324,22 +300,19 @@ input[type="file"] {
 }
 
 /* Cores condicionais das linhas da tabela */
-/* Mais forte para atrasado sem abono */
 .overdue-row-strong {
-  background-color: #CC0000 !important; /* Vermelho mais intenso */
-  color: #FFFFFF !important; /* Texto branco para contraste */
+  background-color: #CC0000 !important; /* Vermelho forte para atrasado sem abono */
+  color: #FFFFFF !important; /* Cor da fonte para contraste */
 }
 
-/* Vermelho normal para atrasado COM abono */
 .overdue-row {
-  background-color: #FF6666 !important; /* Vermelho um pouco mais suave */
-  color: #333333 !important; /* Texto escuro para contraste */
+  background-color: #FF6666 !important; /* Vermelho normal para atrasado com abono */
+  color: #333333 !important; /* Cor da fonte para contraste */
 }
 
-/* Amarelo sutil para vencendo hoje */
 .due-today-row {
-  background-color: #FFFF99 !important; /* Amarelo sutil */
-  color: #333333 !important; /* Texto escuro para contraste */
+  background-color: #FFFF99 !important; /* Amarelo sutil para vencendo hoje */
+  color: #333333 !important; /* Cor da fonte para contraste */
 }
 
 /* Cor da célula "FALTA ABONAR" (sobrescreve a cor da linha) */
@@ -352,17 +325,17 @@ input[type="file"] {
 /* Ajustes de largura de coluna (exemplo, ajuste conforme necessário) */
 /* Removi as larguras percentuais e usei apenas min-width para flexibilidade */
 .data-table th:nth-child(1), .data-table td:nth-child(1) { min-width: 100px; } /* Chamado */
-.data-table th:nth-child(2), .data-table td:nth-child(2) { min-width: 130px; } /* Numero Referencia (reduzido um pouco) */
+.data-table th:nth-child(2), .data-table td:nth-child(2) { min-width: 130px; } /* Numero Referencia */
 .data-table th:nth-child(3), .data-table td:nth-child(3) { min-width: 160px; } /* Contratante */
-.data-table th:nth-child(4), .data-table td:nth-child(4) { min-width: 200px; } /* Serviço (mais largo para nomes completos) */
+.data-table th:nth-child(4), .data-table td:nth-child(4) { min-width: 200px; } /* Serviço */
 .data-table th:nth-child(5), .data-table td:nth-child(5) { min-width: 150px; } /* Status */
 .data-table th:nth-child(6), .data-table td:nth-child(6) { min-width: 120px; } /* Data Limite */
 .data-table th:nth-child(7), .data-table td:nth-child(7) { min-width: 150px; } /* Cliente */
-.data-table th:nth-child(8), .data-table td:nth-child(8) { min-width: 160px; } /* CNPJ / CPF (mais largo) */
-.data-table th:nth-child(9), .data-table td:nth-child(9) { min-width: 140px; } /* Cidade (mais largo) */
+.data-table th:nth-child(8), .data-table td:nth-child(8) { min-width: 160px; } /* CNPJ / CPF */
+.data-table th:nth-child(9), .data-table td:nth-child(9) { min-width: 140px; } /* Cidade */
 .data-table th:nth-child(10), .data-table td:nth-child(10) { min-width: 160px; } /* Técnico */
 .data-table th:nth-child(11), .data-table td:nth-child(11) { min-width: 180px; } /* Prestador */
-.data-table th:nth-child(12), .data-table td:nth-child(12) { min-width: 220px; } /* Justificativa do Abono (mais largo) */
+.data-table th:nth-child(12), .data-table td:nth-child(12) { min-width: 220px; } /* Justificativa do Abono */
 
 
 /* Media Queries para Responsividade */
