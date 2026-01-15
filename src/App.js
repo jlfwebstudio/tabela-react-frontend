@@ -141,15 +141,14 @@ function App() {
     filteredData.forEach(row => {
       const dataLimiteStr = row['Data Limite'];
       const dataLimite = normalizeDate(dataLimiteStr);
-      const justificativa = row['Justificativa do Abono'];
 
-      // Conta como atraso se a data limite passou E a justificativa estiver vazia
-      if (dataLimite && dataLimite.getTime() < today.getTime() && isJustificativaVazia(justificativa)) {
+      // Contador de atraso: Data Limite < hoje (sem considerar justificativa)
+      if (dataLimite && dataLimite.getTime() < today.getTime()) {
         count++;
       }
     });
     setOverdueCount(count);
-  }, [filteredData, normalizeDate, isJustificativaVazia]);
+  }, [filteredData, normalizeDate]); // Removido isJustificativaVazia daqui
 
   // Função para lidar com o upload do arquivo
   const handleFileUpload = async (event) => {
@@ -300,7 +299,7 @@ function App() {
   // Função para determinar a classe da linha com base na Data Limite e Justificativa
   const getRowClassByDataLimite = useCallback((row) => {
     const dataLimiteStr = row['Data Limite'];
-    const justificativa = row['Justificativa do Abono'];
+    const justificativa = row['Justificativa do Abono']; // Ainda precisamos da justificativa para decidir se é "strong" ou "normal"
     const dataLimite = normalizeDate(dataLimiteStr);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -321,7 +320,7 @@ function App() {
       }
     }
     return '';
-  }, [normalizeDate, isJustificativaVazia]);
+  }, [normalizeDate, isJustificativaVazia]); // isJustificativaVazia é uma dependência válida aqui
 
   // Função para obter o conteúdo e a classe da célula
   const getCellContentAndClassName = useCallback((row, header) => {
@@ -331,7 +330,7 @@ function App() {
     // Formatação específica para CNPJ / CPF
     if (header === 'CNPJ / CPF') {
       if (typeof content === 'string') {
-        content = content.replace(/^=?"?|"?$/g, ''); // Remove =, " do início e fim
+        content = content.replace(/^=?"?|"?$/g, ''); // Remove '=' e aspas duplas
       }
     }
 
@@ -342,7 +341,7 @@ function App() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica a classe roxa
+      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica estilo roxo
       if (dataLimite && dataLimite.getTime() < today.getTime() && isJustificativaVazia(content)) {
         content = 'FALTA ABONAR';
         className = 'falta-abonar';
@@ -355,6 +354,11 @@ function App() {
 
   // Função para exportar para Excel
   const exportToExcel = useCallback(() => {
+    if (filteredData.length === 0) {
+      alert("Não há dados para exportar.");
+      return;
+    }
+
     const ws = XLSX.utils.json_to_sheet([]); // Cria uma planilha vazia
 
     // Adiciona os cabeçalhos
@@ -380,8 +384,8 @@ function App() {
     for (let rowIndex = 0; rowIndex < filteredData.length; rowIndex++) {
       const row = filteredData[rowIndex];
       const rowClass = getRowClassByDataLimite(row); // Obtém a classe da linha
-      let rowBgColor = "2A2A4A"; // Cor de fundo padrão
-      let rowFontColor = "E0E0E0"; // Cor da fonte padrão
+      let rowBgColor = "2A2A4A"; // Cor de fundo padrão da linha
+      let rowFontColor = "E0E0E0"; // Cor da fonte padrão da linha
 
       if (rowClass === 'overdue-row-strong') {
         rowBgColor = "CC0000";
@@ -443,7 +447,7 @@ function App() {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(dataBlob, 'relatorio_oss.xlsx');
-  }, [filteredData, tableHeaders, getCellContentAndClassName, getRowClassByDataLimite]); // REMOVIDO normalizeDate AQUI
+  }, [filteredData, tableHeaders, getCellContentAndClassName, getRowClassByDataLimite]);
 
   return (
     <div className="App">
