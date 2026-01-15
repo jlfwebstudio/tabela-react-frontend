@@ -135,208 +135,64 @@ function App() {
   // Efeito para calcular o contador de OSs em atraso (Data Limite < hoje)
   useEffect(() => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
 
     let count = 0;
     filteredData.forEach(row => {
-      const dataLimiteStr = row['Data Limite'];
-      const dataLimite = normalizeDate(dataLimiteStr);
-      // O contador agora contabiliza TODOS os chamados com data limite < hoje
-      if (dataLimite && dataLimite.getTime() < today.getTime()) {
+      const dataLimite = normalizeDate(row['Data Limite']);
+      if (dataLimite && dataLimite < today) {
         count++;
       }
     });
     setOverdueCount(count);
-  }, [filteredData, normalizeDate]); // Removido isJustificativaVazia daqui, conforme nova lógica
+  }, [filteredData, normalizeDate]);
 
-  // Função para lidar com o upload do arquivo
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) {
-      setError("Nenhum arquivo selecionado.");
-      return;
-    }
-
-    setSelectedFileName(file.name);
-    setLoading(true);
-    setError(null);
-    setData([]); // Limpa os dados anteriores
-
-    const formData = new FormData();
-    formData.append('csvFile', file);
-
-    try {
-      // Usando a variável de ambiente para a URL da API
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:10000';
-      const response = await axios.post(`${apiUrl}/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setData(response.data);
-      setLoading(false);
-      // Limpa os filtros ativos e seleções após um novo upload
-      setActiveFilters({});
-      setFilterSelections({});
-      setOpenDropdown(null);
-    } catch (err) {
-      console.error("Erro ao fazer upload do arquivo:", err);
-      setError("Erro ao carregar o arquivo. Verifique o formato e tente novamente.");
-      setLoading(false);
-    }
-  };
-
-  // Função para obter valores únicos de uma coluna para o filtro
-  const getUniqueColumnValues = useCallback((columnName) => {
-    const values = new Set();
-    filteredData.forEach(row => {
-      const value = row[columnName];
-      // Normaliza o status para o filtro, se for a coluna 'Status'
-      if (columnName === 'Status') {
-        values.add(normalizeStatusValue(value));
-      } else {
-        values.add(value === undefined || value === null ? '' : String(value));
-      }
-    });
-    const sortedValues = Array.from(values).sort((a, b) => {
-      if (a === '') return 1; // Coloca vazios no final
-      if (b === '') return -1;
-      return String(a).localeCompare(String(b));
-    });
-    return sortedValues;
-  }, [filteredData, normalizeStatusValue]);
-
-  // Lógica para abrir/fechar dropdown de filtro
-  const toggleFilterDropdown = useCallback((columnName, event) => {
-    event.stopPropagation(); // Impede que o clique feche o dropdown imediatamente
-    if (openDropdown === columnName) {
-      setOpenDropdown(null);
-    } else {
-      setOpenDropdown(columnName);
-      // Inicializa as seleções do filtro com base nos filtros ativos
-      setFilterSelections(activeFilters[columnName] || {});
-
-      // Calcula a posição do dropdown
-      const iconRect = filterIconRefs.current[columnName].getBoundingClientRect();
-      // Posiciona o dropdown acima da tabela, alinhado com o ícone
-      setFilterDropdownPosition({
-        top: iconRect.bottom + window.scrollY + 5, // 5px abaixo do ícone
-        left: iconRect.left + window.scrollX
-      });
-    }
-  }, [openDropdown, activeFilters]);
-
-  // Lógica para fechar dropdown ao clicar fora
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) &&
-        !Object.values(filterIconRefs.current).some(ref => ref && ref.contains(event.target))) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [filterDropdownRef, filterIconRefs]);
-
-  // Lógica para lidar com a seleção de filtros
-  const handleFilterSelectionChange = useCallback((value) => {
-    setFilterSelections(prev => ({
-      ...prev,
-      [value]: !prev[value]
-    }));
-  }, []);
-
-  // Lógica para aplicar filtros
-  const applyFilters = useCallback((columnName) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      [columnName]: filterSelections
-    }));
-    setOpenDropdown(null);
-  }, [filterSelections]);
-
-  // Lógica para limpar filtros
-  const clearFilters = useCallback((columnName) => {
-    setActiveFilters(prev => {
-      const newFilters = { ...prev };
-      delete newFilters[columnName];
-      return newFilters;
-    });
-    setFilterSelections({});
-    setOpenDropdown(null);
-  }, []);
-
-  // Lógica para selecionar/desmarcar tudo no filtro
-  const toggleSelectAll = useCallback((columnName, selectAll) => {
-    const uniqueValues = getUniqueColumnValues(columnName);
-    const newSelections = {};
-    uniqueValues.forEach(value => {
-      newSelections[value] = selectAll;
-    });
-    setFilterSelections(newSelections);
-  }, [getUniqueColumnValues]);
-
-  // Lógica de ordenação
-  const requestSort = useCallback((key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    setSortConfig({ key, direction });
-  }, [sortConfig]);
-
-  // Ícone de ordenação
-  const getSortIcon = useCallback((key) => {
-    if (!sortConfig.key || sortConfig.key !== key) {
-      return null;
-    }
-    return sortConfig.direction === 'ascending' ? faSortUp : faSortDown;
-  }, [sortConfig]);
-
-  // Função para determinar a classe da linha com base na Data Limite (AGORA SEM CONSIDERAR JUSTIFICATIVA PARA A COR DA LINHA)
+  // Função para determinar a classe CSS da linha com base na Data Limite
   const getRowClassByDataLimite = useCallback((row) => {
-    const dataLimiteStr = row['Data Limite'];
-    const dataLimite = normalizeDate(dataLimiteStr);
+    const dataLimite = normalizeDate(row['Data Limite']);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
 
-    if (dataLimite) {
-      // Data Limite < Data de Hoje (SEMPRE VERMELHO se atrasado)
-      if (dataLimite.getTime() < today.getTime()) {
-        // Usamos overdue-row-strong para todos os atrasados, a célula FALTA ABONAR terá prioridade de cor
-        return 'overdue-row-strong';
-      }
-      // Data Limite = Data de Hoje
-      if (dataLimite.getTime() === today.getTime()) {
-        return 'due-today-row';
+    if (!dataLimite) return '';
+
+    // Se a data limite for anterior a hoje
+    if (dataLimite < today) {
+      // Verifica se a justificativa está vazia ou é "FALTA ABONAR"
+      const justificativa = row['Justificativa do Abono'];
+      if (isJustificativaVazia(justificativa)) {
+        return 'overdue-row-strong'; // Vermelho forte se atrasado e sem abono
+      } else {
+        return 'overdue-row'; // Vermelho normal se atrasado e com abono
       }
     }
-    return '';
-  }, [normalizeDate]); // Removido isJustificativaVazia daqui, conforme nova lógica
+    // Se a data limite for hoje
+    if (dataLimite.getTime() === today.getTime()) {
+      return 'due-today-row'; // Amarelo se vencendo hoje
+    }
 
-  // Função para obter o conteúdo e a classe da célula
+    return ''; // Nenhuma classe se não for atrasado nem vencendo hoje
+  }, [normalizeDate, isJustificativaVazia]);
+
+
+  // Função para obter o conteúdo da célula e sua classe CSS
   const getCellContentAndClassName = useCallback((row, header) => {
     let content = row[header];
     let className = '';
 
-    // Formatação específica para CNPJ / CPF
+    // Lógica para CNPJ / CPF
     if (header === 'CNPJ / CPF') {
       if (typeof content === 'string') {
-        content = content.replace(/^=?"?|"?$/g, ''); // Remove =, " do início e fim
+        content = content.replace(/^=?"?|"?$/g, ''); // Remove = e aspas
       }
     }
 
-    // Lógica para a célula "Justificativa do Abono"
+    // Lógica para "FALTA ABONAR" (célula roxa)
     if (header === 'Justificativa do Abono') {
-      const dataLimiteStr = row['Data Limite'];
-      const dataLimite = normalizeDate(dataLimiteStr);
+      const dataLimite = normalizeDate(row['Data Limite']);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica a classe roxa
-      if (dataLimite && dataLimite.getTime() < today.getTime() && isJustificativaVazia(content)) {
+      if (dataLimite && dataLimite < today && isJustificativaVazia(content)) {
         content = 'FALTA ABONAR';
         className = 'falta-abonar';
       }
@@ -345,75 +201,242 @@ function App() {
     return { content, className };
   }, [normalizeDate, isJustificativaVazia]);
 
+  // Função para carregar dados do backend
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const response = await axios.get(`${apiUrl}/data`);
+      setData(response.data);
+    } catch (err) {
+      console.error("Erro ao buscar dados:", err);
+      setError('Erro ao carregar os dados. Tente novamente mais tarde.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Efeito para carregar dados na montagem do componente
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Função para lidar com o upload de arquivos
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setSelectedFileName(file.name);
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      await axios.post(`${apiUrl}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      alert('Arquivo enviado e dados atualizados com sucesso!');
+      fetchData(); // Recarrega os dados após o upload
+    } catch (err) {
+      console.error("Erro ao fazer upload:", err);
+      setError('Erro ao carregar o arquivo. Verifique o formato e tente novamente.');
+    } finally {
+      setLoading(false);
+      event.target.value = null; // Limpa o input para permitir upload do mesmo arquivo novamente
+    }
+  };
+
+  // Funções de filtro
+  const getUniqueColumnValues = useCallback((columnName) => {
+    const values = new Set();
+    filteredData.forEach(row => {
+      const value = row[columnName];
+      if (value !== undefined && value !== null) {
+        values.add(String(value));
+      }
+    });
+    return Array.from(values).sort((a, b) => {
+      if (columnName === 'Data Limite') {
+        const dateA = normalizeDate(a);
+        const dateB = normalizeDate(b);
+        if (dateA && dateB) return dateA.getTime() - dateB.getTime();
+        return 0;
+      }
+      return a.localeCompare(b);
+    });
+  }, [filteredData, normalizeDate]);
+
+  const toggleFilterDropdown = useCallback((header, e) => {
+    e.stopPropagation(); // Impede que o clique se propague para o document
+    if (openDropdown === header) {
+      setOpenDropdown(null);
+    } else {
+      setOpenDropdown(header);
+      // Inicializa as seleções de filtro para o novo dropdown
+      const currentSelections = activeFilters[header] || {};
+      const initialSelections = {};
+      getUniqueColumnValues(header).forEach(value => {
+        initialSelections[value] = currentSelections[value] !== undefined ? currentSelections[value] : true;
+      });
+      setFilterSelections(initialSelections);
+
+      // Calcula a posição do dropdown
+      const iconRect = filterIconRefs.current[header].getBoundingClientRect();
+      const dropdownWidth = 220; // Largura mínima do dropdown
+      const dropdownHeight = 300; // Altura máxima do dropdown
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      let top = iconRect.bottom + window.scrollY + 5; // Padrão: abaixo do ícone
+      let left = iconRect.left + window.scrollX;
+
+      // Ajusta se o dropdown sair da tela para a direita
+      if (left + dropdownWidth > viewportWidth) {
+        left = viewportWidth - dropdownWidth - 10; // 10px de margem
+      }
+      // Ajusta se o dropdown sair da tela para a esquerda (se o ajuste da direita não for suficiente)
+      if (left < 0) {
+        left = 10;
+      }
+
+      // Ajusta se o dropdown sair da tela para baixo
+      if (top + dropdownHeight > viewportHeight + window.scrollY) {
+        top = iconRect.top + window.scrollY - dropdownHeight - 5; // Acima do ícone
+        if (top < window.scrollY) { // Se ainda sair da tela para cima, posiciona no topo da viewport
+          top = window.scrollY + 10;
+        }
+      }
+
+      setFilterDropdownPosition({ top, left });
+    }
+  }, [openDropdown, activeFilters, getUniqueColumnValues]);
+
+  const handleFilterSelectionChange = useCallback((value) => {
+    setFilterSelections(prev => ({
+      ...prev,
+      [value]: !prev[value]
+    }));
+  }, []);
+
+  const applyFilters = useCallback((columnName) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [columnName]: filterSelections
+    }));
+    setOpenDropdown(null);
+  }, [filterSelections]);
+
+  const clearFilters = useCallback((columnName) => {
+    setActiveFilters(prev => {
+      const newFilters = { ...prev };
+      delete newFilters[columnName];
+      return newFilters;
+    });
+    setFilterSelections({}); // Limpa as seleções temporárias
+    setOpenDropdown(null);
+  }, []);
+
+  const toggleSelectAll = useCallback((columnName, selectAll) => {
+    const newSelections = {};
+    getUniqueColumnValues(columnName).forEach(value => {
+      newSelections[value] = selectAll;
+    });
+    setFilterSelections(newSelections);
+  }, [getUniqueColumnValues]);
+
+  // Efeito para fechar o dropdown de filtro ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) &&
+          !Object.values(filterIconRefs.current).some(ref => ref && ref.contains(event.target))) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdown]);
+
+  // Funções de ordenação
+  const requestSort = useCallback((key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  }, [sortConfig]);
+
+  const getSortIcon = useCallback((key) => {
+    if (sortConfig.key !== key) {
+      return null;
+    }
+    if (sortConfig.direction === 'ascending') {
+      return faSortUp;
+    }
+    return faSortDown;
+  }, [sortConfig]);
 
   // Função para exportar para Excel
   const exportToExcel = useCallback(() => {
-    if (filteredData.length === 0) {
-      alert("Não há dados para exportar.");
-      return;
-    }
-
-    // Mapeia os dados para o formato esperado pelo XLSX, aplicando as mesmas transformações visuais
-    const dataForExport = filteredData.map(row => {
+    // Mapeia os dados filtrados para um formato que o XLSX.utils.json_to_sheet entenda
+    const dataForExcel = filteredData.map(row => {
       const newRow = {};
       tableHeaders.forEach(header => {
-        const { content } = getCellContentAndClassName(row, header);
+        const { content } = getCellContentAndClassName(row, header); // Usa a mesma lógica de formatação da célula
         newRow[header] = content;
       });
       return newRow;
     });
 
-    // Cria a planilha com os dados e cabeçalhos
-    const ws = XLSX.utils.json_to_sheet(dataForExport, { header: tableHeaders });
+    const ws = XLSX.utils.json_to_sheet(dataForExcel, { header: tableHeaders });
 
-    // Estilo para o cabeçalho
-    const headerStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "4A4A6A" } },
-      alignment: { horizontal: "center", vertical: "center" },
-      border: {
-        top: { style: "thin", color: { rgb: "6A6A8A" } },
-        bottom: { style: "thin", color: { rgb: "6A6A8A" } },
-        left: { style: "thin", color: { rgb: "6A6A8A" } },
-        right: { style: "thin", color: { rgb: "6A6A8A" } },
-      }
-    };
-
+    // Aplica estilos aos cabeçalhos
     tableHeaders.forEach((header, colIndex) => {
       const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
       if (!ws[cellRef]) ws[cellRef] = {};
-      ws[cellRef].s = headerStyle;
+      ws[cellRef].s = {
+        font: { color: { rgb: "FFFFFF" }, bold: true },
+        fill: { fgColor: { rgb: "4A4A6A" } }, // Cor de fundo do cabeçalho
+        alignment: { horizontal: "left", vertical: "center" },
+        border: {
+          top: { style: "thin", color: { rgb: "3A3A5A" } },
+          bottom: { style: "thin", color: { rgb: "3A3A5A" } },
+          left: { style: "thin", color: { rgb: "3A3A5A" } },
+          right: { style: "thin", color: { rgb: "3A3A5A" } },
+        }
+      };
     });
 
     // Aplica estilos às células de dados
     filteredData.forEach((row, rowIndex) => {
       const rowClass = getRowClassByDataLimite(row); // Obtém a classe da linha
-      let rowBgColor = "2A2A4A"; // Cor de fundo padrão da linha
-      let rowFontColor = "E0E0E0"; // Cor da fonte padrão da linha
+      let rowBgColor = "2A2A4A"; // Cor de fundo padrão da célula (azul escuro)
 
-      // Determina a cor de fundo da linha
       if (rowClass === 'overdue-row-strong') {
         rowBgColor = "CC0000"; // Vermelho forte
-        rowFontColor = "FFFFFF"; // Texto branco
       } else if (rowClass === 'overdue-row') {
         rowBgColor = "FF6666"; // Vermelho normal
-        rowFontColor = "333333"; // Texto escuro
       } else if (rowClass === 'due-today-row') {
-        rowBgColor = "FFFF99"; // Amarelo sutil
-        rowFontColor = "333333"; // Texto escuro
+        rowBgColor = "FFFF99"; // Amarelo
       }
 
       tableHeaders.forEach((header, colIndex) => {
-        const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
+        const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex }); // +1 para pular o cabeçalho
         if (!ws[cellRef]) ws[cellRef] = {};
 
-        const { content, className } = getCellContentAndClassName(row, header); // Obtém o conteúdo formatado e a classe
+        const { content, className } = getCellContentAndClassName(row, header);
 
-        // Estilo da célula
         let cellStyle = {
-          font: { color: { rgb: rowFontColor } },
-          fill: { fgColor: { rgb: rowBgColor } },
-          alignment: { vertical: "center" },
+          font: { color: { rgb: "E0E0E0" } }, // Cor de texto padrão
+          fill: { fgColor: { rgb: rowBgColor } }, // Cor de fundo da linha
+          alignment: { horizontal: "left", vertical: "center" },
           border: {
             top: { style: "thin", color: { rgb: "3A3A5A" } },
             bottom: { style: "thin", color: { rgb: "3A3A5A" } },

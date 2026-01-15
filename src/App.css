@@ -47,99 +47,102 @@ body {
   width: 100%;
   max-width: 1400px;
   background-color: #2a2a4a;
-  padding: 20px;
+  padding: 20px 30px;
   border-radius: 10px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-.file-upload-section, .info-actions-container {
+.file-upload-section {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
-}
-
-/* Estilo do input de arquivo customizado */
-input[type="file"] {
-  display: none;
+  gap: 15px;
+  flex-wrap: wrap; /* Permite quebrar linha em telas menores */
 }
 
 .custom-file-upload {
   background-color: #007bff; /* Azul vibrante */
   color: white;
-  padding: 14px 25px;
+  padding: 12px 25px;
   border-radius: 8px;
   cursor: pointer;
+  font-size: 1.1em;
   font-weight: bold;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
 }
 
 .custom-file-upload:hover {
-  background-color: #0056b3; /* Azul mais escuro no hover */
+  background-color: #0056b3;
   transform: translateY(-2px);
 }
 
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
 .file-name-display {
-  flex-grow: 1; /* Ocupa o espaço restante */
-  text-align: left;
-  padding: 8px 15px;
-  background-color: #3a3a5a;
-  border-radius: 5px;
-  color: #bbb;
-  max-width: 300px; /* Limita a largura para nomes de arquivo muito longos */
+  color: #87ceeb;
+  font-style: italic;
+  max-width: 300px; /* Limita a largura para nomes de arquivo longos */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* Contador de OSs em Atraso */
-.overdue-count {
-  background-color: #3a3a5a;
-  color: #e0e0e0;
-  padding: 14px 25px;
-  border-radius: 8px;
-  font-weight: bold;
-  display: inline-flex;
+.info-actions-container {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-.overdue-count .count-number {
-  color: #ff6b6b; /* Vermelho para o número de atrasos */
-  font-size: 1.3em;
-}
-
-/* Botão de Exportar */
-.export-button {
-  background-color: #28a745; /* Verde vibrante */
+.overdue-count {
+  background-color: #ff4d4d; /* Vermelho para o contador */
   color: white;
-  padding: 14px 25px;
+  padding: 12px 25px;
   border-radius: 8px;
-  border: none;
-  cursor: pointer;
+  font-size: 1.1em;
   font-weight: bold;
-  transition: background-color 0.2s ease, transform 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(255, 77, 77, 0.4);
+}
+
+.overdue-count .count-number {
+  font-size: 1.5em;
+  margin-left: 5px;
+}
+
+.export-button {
+  background-color: #28a745; /* Verde para exportar */
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.4);
 }
 
 .export-button:hover:not(:disabled) {
-  background-color: #218838; /* Verde mais escuro no hover */
+  background-color: #218838;
   transform: translateY(-2px);
 }
 
 .export-button:disabled {
-  background-color: #6c757d; /* Cinza para botão desabilitado */
+  background-color: #6c757d;
   cursor: not-allowed;
-  opacity: 0.7;
+  box-shadow: none;
 }
 
 /* Mensagens de Status */
@@ -149,6 +152,7 @@ input[type="file"] {
   padding: 15px;
   border-radius: 8px;
   text-align: center;
+  font-size: 1.1em;
   font-weight: bold;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -159,26 +163,27 @@ input[type="file"] {
 }
 
 .error-message {
-  background-color: #6a2a2a;
-  color: #ff6b6b;
+  background-color: #dc3545;
+  color: white;
 }
 
-/* Estilos da Tabela */
+/* Tabela de Dados */
 .data-table-container {
-  overflow-x: auto; /* Permite rolagem horizontal se a tabela for muito larga */
-  width: 100%; /* Expande para a largura total da página */
-  max-width: 1400px; /* Limita a largura máxima do container */
-  margin: 20px auto;
-  border: 1px solid #4A4A6A; /* Borda da tabela */
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1400px;
+  background-color: #2a2a4a;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  overflow-x: auto; /* Adiciona barra de rolagem horizontal se necessário */
   position: relative; /* Necessário para o thead sticky */
+  padding-bottom: 10px; /* Espaço para a barra de rolagem inferior */
 }
 
 .data-table {
-  width: 100%; /* Ocupa a largura total do container */
-  border-collapse: collapse;
-  min-width: 1600px; /* Aumentado para acomodar colunas mais largas */
+  width: 100%;
+  border-collapse: separate; /* Permite border-radius em td/th */
+  border-spacing: 0;
+  min-width: 1200px; /* Largura mínima para garantir que as colunas tenham espaço */
 }
 
 .data-table th,
@@ -195,17 +200,43 @@ input[type="file"] {
   background-color: #4A4A6A;
   color: #FFFFFF;
   font-weight: bold;
-  position: sticky; /* Faz o cabeçalho grudar no topo ao rolar */
+  position: sticky;
   top: 0;
-  z-index: 10; /* Garante que o cabeçalho fique acima do conteúdo */
+  z-index: 10;
 }
 
-.data-table td {
-  background-color: #2A2A4A;
-  color: #E0E0E0;
+/* AQUI ESTÁ A MUDANÇA: Aumentando a especificidade para as cores das linhas */
+.data-table tbody tr td { /* Alvo as células dentro das linhas do tbody */
+  background-color: #2A2A4A; /* Cor de fundo padrão da célula */
+  color: #E0E0E0; /* Cor de texto padrão da célula */
 }
 
-/* Estilos para o conteúdo do cabeçalho (para ícones de filtro e ordenação) */
+/* Cores condicionais das linhas da tabela */
+/* Aplicamos as cores diretamente no TR e garantimos que as TDs herdem ou sejam sobrescritas */
+.data-table tbody tr.overdue-row-strong td { /* Mais específico para garantir a cor da linha */
+  background-color: #CC0000 !important; /* Vermelho forte para atrasado sem abono */
+  color: #FFFFFF !important; /* Cor da fonte para contraste */
+}
+
+.data-table tbody tr.overdue-row td { /* Mais específico para garantir a cor da linha */
+  background-color: #FF6666 !important; /* Vermelho normal para atrasado com abono */
+  color: #333333 !important; /* Cor da fonte para contraste */
+}
+
+.data-table tbody tr.due-today-row td { /* Mais específico para garantir a cor da linha */
+  background-color: #FFFF99 !important; /* Amarelo sutil para vencendo hoje */
+  color: #333333 !important; /* Cor da fonte para contraste */
+}
+
+/* Cor da célula "FALTA ABONAR" (sobrescreve a cor da linha) */
+/* Esta regra já é bem específica e deve funcionar sobre as cores de linha */
+.data-table tbody tr td.falta-abonar {
+  background-color: #800080 !important; /* Roxo */
+  color: #FFFFFF !important; /* Texto branco */
+  font-weight: bold;
+}
+
+/* Estilos para o cabeçalho da tabela (ícones de filtro e ordenação) */
 .header-content {
   display: flex;
   align-items: center;
@@ -218,6 +249,7 @@ input[type="file"] {
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-grow: 1; /* Permite que o texto ocupe o espaço */
 }
 
 .sort-icon {
@@ -231,22 +263,22 @@ input[type="file"] {
   transition: color 0.2s ease;
 }
 
-.filter-icon:hover, .filter-icon.filter-active {
-  color: #87ceeb;
+.filter-icon:hover, .filter-active {
+  color: #87ceeb; /* Azul claro quando ativo ou hover */
 }
 
 /* Dropdown de Filtro */
 .filter-dropdown {
   position: absolute;
   background-color: #3a3a5a;
-  border: 1px solid #4A4A6A;
+  border: 1px solid #4a4a6a;
   border-radius: 8px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-  z-index: 100; /* Garante que o dropdown fique acima de tudo */
-  padding: 15px;
+  z-index: 100; /* Garante que fique acima de outros elementos */
   min-width: 220px;
   max-height: 300px; /* Altura máxima para rolagem */
-  overflow-y: auto; /* Adiciona rolagem vertical se muitos itens */
+  overflow-y: auto; /* Rolagem vertical para muitas opções */
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -255,75 +287,51 @@ input[type="file"] {
 .filter-options-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 200px; /* Altura máxima para a lista de opções */
-  overflow-y: auto; /* Rolagem para as opções */
+  gap: 5px;
+  max-height: 200px; /* Altura máxima para as opções de checkbox */
+  overflow-y: auto;
   padding-right: 5px; /* Espaço para a barra de rolagem */
 }
 
 .filter-option {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
+  padding: 5px 0;
   color: #e0e0e0;
 }
 
 .filter-option input[type="checkbox"] {
-  accent-color: #87ceeb; /* Cor do checkbox */
-  cursor: pointer;
+  accent-color: #007bff; /* Cor do checkbox */
 }
 
 .filter-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* Permite que os botões quebrem linha */
   gap: 8px;
   margin-top: 10px;
-  border-top: 1px solid #4A4A6A;
+  border-top: 1px solid #4a4a6a;
   padding-top: 10px;
 }
 
 .filter-actions button {
   background-color: #5a5a7a;
   color: white;
-  border: none;
   padding: 8px 12px;
   border-radius: 5px;
+  border: none;
   cursor: pointer;
+  font-size: 0.9em;
   transition: background-color 0.2s ease;
-  flex-grow: 1; /* Para que os botões ocupem o espaço */
-  min-width: 48%; /* Para ter 2 botões por linha em telas pequenas */
+  flex-grow: 1; /* Faz os botões crescerem para preencher o espaço */
 }
 
 .filter-actions button:hover {
   background-color: #6a6a8a;
 }
 
-/* Cores condicionais das linhas da tabela */
-.overdue-row-strong {
-  background-color: #CC0000 !important; /* Vermelho forte para atrasado sem abono */
-  color: #FFFFFF !important; /* Cor da fonte para contraste */
-}
-
-.overdue-row {
-  background-color: #FF6666 !important; /* Vermelho normal para atrasado com abono */
-  color: #333333 !important; /* Cor da fonte para contraste */
-}
-
-.due-today-row {
-  background-color: #FFFF99 !important; /* Amarelo sutil para vencendo hoje */
-  color: #333333 !important; /* Cor da fonte para contraste */
-}
-
-/* Cor da célula "FALTA ABONAR" (sobrescreve a cor da linha) */
-.falta-abonar {
-  background-color: #800080 !important; /* Roxo */
-  color: #FFFFFF !important; /* Texto branco */
-  font-weight: bold;
-}
-
 /* Ajustes de largura de coluna (exemplo, ajuste conforme necessário) */
-/* Removi as larguras percentuais e usei apenas min-width para flexibilidade */
 .data-table th:nth-child(1), .data-table td:nth-child(1) { min-width: 100px; } /* Chamado */
 .data-table th:nth-child(2), .data-table td:nth-child(2) { min-width: 130px; } /* Numero Referencia */
 .data-table th:nth-child(3), .data-table td:nth-child(3) { min-width: 160px; } /* Contratante */
