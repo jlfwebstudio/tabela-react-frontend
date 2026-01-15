@@ -141,14 +141,13 @@ function App() {
     filteredData.forEach(row => {
       const dataLimiteStr = row['Data Limite'];
       const dataLimite = normalizeDate(dataLimiteStr);
-
-      // Contador de atraso: Data Limite < hoje (sem considerar justificativa)
+      // O contador agora contabiliza TODOS os chamados com data limite < hoje
       if (dataLimite && dataLimite.getTime() < today.getTime()) {
         count++;
       }
     });
     setOverdueCount(count);
-  }, [filteredData, normalizeDate]); // Removido isJustificativaVazia daqui
+  }, [filteredData, normalizeDate]); // Removido isJustificativaVazia daqui, conforme nova lógica
 
   // Função para lidar com o upload do arquivo
   const handleFileUpload = async (event) => {
@@ -296,23 +295,18 @@ function App() {
     return sortConfig.direction === 'ascending' ? faSortUp : faSortDown;
   }, [sortConfig]);
 
-  // Função para determinar a classe da linha com base na Data Limite e Justificativa
+  // Função para determinar a classe da linha com base na Data Limite (AGORA SEM CONSIDERAR JUSTIFICATIVA PARA A COR DA LINHA)
   const getRowClassByDataLimite = useCallback((row) => {
     const dataLimiteStr = row['Data Limite'];
-    const justificativa = row['Justificativa do Abono']; // Ainda precisamos da justificativa para decidir se é "strong" ou "normal"
     const dataLimite = normalizeDate(dataLimiteStr);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     if (dataLimite) {
-      // Data Limite < Data de Hoje
+      // Data Limite < Data de Hoje (SEMPRE VERMELHO se atrasado)
       if (dataLimite.getTime() < today.getTime()) {
-        // Se a justificativa estiver vazia ou for "FALTA ABONAR", vermelho forte
-        if (isJustificativaVazia(justificativa)) {
-          return 'overdue-row-strong';
-        }
-        // Se a justificativa estiver preenchida, vermelho normal
-        return 'overdue-row';
+        // Usamos overdue-row-strong para todos os atrasados, a célula FALTA ABONAR terá prioridade de cor
+        return 'overdue-row-strong';
       }
       // Data Limite = Data de Hoje
       if (dataLimite.getTime() === today.getTime()) {
@@ -320,7 +314,7 @@ function App() {
       }
     }
     return '';
-  }, [normalizeDate, isJustificativaVazia]); // isJustificativaVazia é uma dependência válida aqui
+  }, [normalizeDate]); // Removido isJustificativaVazia daqui, conforme nova lógica
 
   // Função para obter o conteúdo e a classe da célula
   const getCellContentAndClassName = useCallback((row, header) => {
@@ -330,7 +324,7 @@ function App() {
     // Formatação específica para CNPJ / CPF
     if (header === 'CNPJ / CPF') {
       if (typeof content === 'string') {
-        content = content.replace(/^=?"?|"?$/g, ''); // Remove '=' e aspas duplas
+        content = content.replace(/^=?"?|"?$/g, ''); // Remove =, " do início e fim
       }
     }
 
@@ -341,7 +335,7 @@ function App() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica estilo roxo
+      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica a classe roxa
       if (dataLimite && dataLimite.getTime() < today.getTime() && isJustificativaVazia(content)) {
         content = 'FALTA ABONAR';
         className = 'falta-abonar';
@@ -359,56 +353,67 @@ function App() {
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet([]); // Cria uma planilha vazia
+    // Mapeia os dados para o formato esperado pelo XLSX, aplicando as mesmas transformações visuais
+    const dataForExport = filteredData.map(row => {
+      const newRow = {};
+      tableHeaders.forEach(header => {
+        const { content } = getCellContentAndClassName(row, header);
+        newRow[header] = content;
+      });
+      return newRow;
+    });
 
-    // Adiciona os cabeçalhos
-    XLSX.utils.sheet_add_aoa(ws, [tableHeaders], { origin: 'A1' });
+    // Cria a planilha com os dados e cabeçalhos
+    const ws = XLSX.utils.json_to_sheet(dataForExport, { header: tableHeaders });
 
     // Estilo para o cabeçalho
-    for (let i = 0; i < tableHeaders.length; i++) {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
-      if (!ws[cellRef]) ws[cellRef] = {};
-      ws[cellRef].s = {
-        font: { bold: true, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "4A4A6A" } },
-        border: {
-          top: { style: "thin", color: { rgb: "3A3A5A" } },
-          bottom: { style: "thin", color: { rgb: "3A3A5A" } },
-          left: { style: "thin", color: { rgb: "3A3A5A" } },
-          right: { style: "thin", color: { rgb: "3A3A5A" } },
-        }
-      };
-    }
+    const headerStyle = {
+      font: { bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4A4A6A" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top: { style: "thin", color: { rgb: "6A6A8A" } },
+        bottom: { style: "thin", color: { rgb: "6A6A8A" } },
+        left: { style: "thin", color: { rgb: "6A6A8A" } },
+        right: { style: "thin", color: { rgb: "6A6A8A" } },
+      }
+    };
 
-    // Adiciona os dados com estilos
-    for (let rowIndex = 0; rowIndex < filteredData.length; rowIndex++) {
-      const row = filteredData[rowIndex];
+    tableHeaders.forEach((header, colIndex) => {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+      if (!ws[cellRef]) ws[cellRef] = {};
+      ws[cellRef].s = headerStyle;
+    });
+
+    // Aplica estilos às células de dados
+    filteredData.forEach((row, rowIndex) => {
       const rowClass = getRowClassByDataLimite(row); // Obtém a classe da linha
       let rowBgColor = "2A2A4A"; // Cor de fundo padrão da linha
       let rowFontColor = "E0E0E0"; // Cor da fonte padrão da linha
 
+      // Determina a cor de fundo da linha
       if (rowClass === 'overdue-row-strong') {
-        rowBgColor = "CC0000";
-        rowFontColor = "FFFFFF";
+        rowBgColor = "CC0000"; // Vermelho forte
+        rowFontColor = "FFFFFF"; // Texto branco
       } else if (rowClass === 'overdue-row') {
-        rowBgColor = "FF6666";
-        rowFontColor = "333333";
+        rowBgColor = "FF6666"; // Vermelho normal
+        rowFontColor = "333333"; // Texto escuro
       } else if (rowClass === 'due-today-row') {
-        rowBgColor = "FFFF99";
-        rowFontColor = "333333";
+        rowBgColor = "FFFF99"; // Amarelo sutil
+        rowFontColor = "333333"; // Texto escuro
       }
 
-      for (let colIndex = 0; colIndex < tableHeaders.length; colIndex++) {
-        const header = tableHeaders[colIndex];
+      tableHeaders.forEach((header, colIndex) => {
         const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
-        const { content, className } = getCellContentAndClassName(row, header); // Obtém conteúdo e classe do formatado
-        ws[cellRef] = { v: content }; // Adiciona o valor formatado
-        ws[cellRef].t = 's'; // Define o tipo como string para evitar formatação automática indesejada
+        if (!ws[cellRef]) ws[cellRef] = {};
+
+        const { content, className } = getCellContentAndClassName(row, header); // Obtém o conteúdo formatado e a classe
 
         // Estilo da célula
-        const cellStyle = {
+        let cellStyle = {
           font: { color: { rgb: rowFontColor } },
           fill: { fgColor: { rgb: rowBgColor } },
+          alignment: { vertical: "center" },
           border: {
             top: { style: "thin", color: { rgb: "3A3A5A" } },
             bottom: { style: "thin", color: { rgb: "3A3A5A" } },
@@ -417,27 +422,36 @@ function App() {
           }
         };
 
-        // Sobrescreve o estilo da célula se for "FALTA ABONAR"
+        // Sobrescreve o estilo da célula se for "FALTA ABONAR" (prioridade)
         if (className === 'falta-abonar') {
-          cellStyle.fill.fgColor.rgb = "800080"; // Roxo
-          cellStyle.font.color.rgb = "FFFFFF"; // Branco
-          cellStyle.font.bold = true;
+          cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true }; // Texto branco e negrito
+          cellStyle.fill = { fgColor: { rgb: "800080" } }; // Roxo
         }
 
-        ws[cellRef].s = cellStyle;
-      }
-    }
+        ws[cellRef].s = cellStyle; // Aplica o estilo à célula
+        ws[cellRef].v = content; // Garante que o conteúdo formatado seja o valor da célula
+        ws[cellRef].t = 's'; // Garante que o Excel trate como texto
+      });
+    });
 
     // Ajusta a largura das colunas
     const wscols = tableHeaders.map(header => {
       let minWidth = 10; // Largura mínima padrão
-      if (header === 'Data Limite') minWidth = 15; // Ajustado para DD/MM/YYYY
+      if (header === 'Serviço') minWidth = 25;
+      if (header === 'Contratante') minWidth = 18;
+      if (header === 'Status') minWidth = 18;
+      if (header === 'Justificativa do Abono') minWidth = 30;
+      if (header === 'Técnico') minWidth = 20;
+      if (header === 'Prestador') minWidth = 25;
+      if (header === 'Cidade') minWidth = 15;
+      if (header === 'CNPJ / CPF') minWidth = 18;
+      if (header === 'Numero Referencia') minWidth = 15;
+      if (header === 'Data Limite') minWidth = 15;
 
-      // Encontra a largura máxima do conteúdo da coluna
       const contentWidth = Math.max(...filteredData.map(row => String(row[header] || '').length));
 
       return {
-        wch: Math.max(minWidth, contentWidth) + 2 // Adiciona um padding
+        wch: Math.max(minWidth, contentWidth) + 2
       };
     });
     ws['!cols'] = wscols;
@@ -448,6 +462,7 @@ function App() {
     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(dataBlob, 'relatorio_oss.xlsx');
   }, [filteredData, tableHeaders, getCellContentAndClassName, getRowClassByDataLimite]);
+
 
   return (
     <div className="App">
