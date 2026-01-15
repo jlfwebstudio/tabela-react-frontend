@@ -220,6 +220,7 @@ function App() {
 
       // Calcula a posição do dropdown
       const iconRect = filterIconRefs.current[columnName].getBoundingClientRect();
+      // Posiciona o dropdown acima da tabela, alinhado com o ícone
       setFilterDropdownPosition({
         top: iconRect.bottom + window.scrollY + 5, // 5px abaixo do ícone
         left: iconRect.left + window.scrollX
@@ -227,11 +228,11 @@ function App() {
     }
   }, [openDropdown, activeFilters]);
 
-  // Fecha o dropdown ao clicar fora
+  // Lógica para fechar dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) &&
-          !Object.values(filterIconRefs.current).some(ref => ref && ref.contains(event.target))) {
+        !Object.values(filterIconRefs.current).some(ref => ref && ref.contains(event.target))) {
         setOpenDropdown(null);
       }
     };
@@ -241,7 +242,7 @@ function App() {
     };
   }, [filterDropdownRef, filterIconRefs]);
 
-  // Lida com a mudança de seleção de checkbox no filtro
+  // Lógica para lidar com a seleção de filtros
   const handleFilterSelectionChange = useCallback((value) => {
     setFilterSelections(prev => ({
       ...prev,
@@ -249,27 +250,27 @@ function App() {
     }));
   }, []);
 
-  // Aplica os filtros selecionados
+  // Lógica para aplicar filtros
   const applyFilters = useCallback((columnName) => {
     setActiveFilters(prev => ({
       ...prev,
       [columnName]: filterSelections
     }));
-    setOpenDropdown(null); // Fecha o dropdown após aplicar
+    setOpenDropdown(null);
   }, [filterSelections]);
 
-  // Limpa os filtros de uma coluna
+  // Lógica para limpar filtros
   const clearFilters = useCallback((columnName) => {
     setActiveFilters(prev => {
       const newFilters = { ...prev };
       delete newFilters[columnName];
       return newFilters;
     });
-    setFilterSelections({}); // Limpa as seleções temporárias
-    setOpenDropdown(null); // Fecha o dropdown
+    setFilterSelections({});
+    setOpenDropdown(null);
   }, []);
 
-  // Seleciona/desseleciona todos os valores de filtro
+  // Lógica para selecionar/desmarcar tudo no filtro
   const toggleSelectAll = useCallback((columnName, selectAll) => {
     const uniqueValues = getUniqueColumnValues(columnName);
     const newSelections = {};
@@ -279,7 +280,7 @@ function App() {
     setFilterSelections(newSelections);
   }, [getUniqueColumnValues]);
 
-  // Lógica de ordenação da tabela
+  // Lógica de ordenação
   const requestSort = useCallback((key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -304,32 +305,34 @@ function App() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (!dataLimite) return '';
-
-    // Data Limite < Data de Hoje
-    if (dataLimite.getTime() < today.getTime()) {
-      // Se a justificativa estiver vazia ou for "FALTA ABONAR", vermelho forte
-      if (isJustificativaVazia(justificativa)) {
-        return 'overdue-row-strong';
+    if (dataLimite) {
+      // Data Limite < Data de Hoje
+      if (dataLimite.getTime() < today.getTime()) {
+        // Se a justificativa estiver vazia ou for "FALTA ABONAR", vermelho forte
+        if (isJustificativaVazia(justificativa)) {
+          return 'overdue-row-strong';
+        }
+        // Se a justificativa estiver preenchida, vermelho normal
+        return 'overdue-row';
       }
-      // Se a justificativa estiver preenchida, vermelho normal
-      return 'overdue-row';
-    }
-    // Data Limite = Data de Hoje
-    if (dataLimite.getTime() === today.getTime()) {
-      return 'due-today-row';
+      // Data Limite = Data de Hoje
+      if (dataLimite.getTime() === today.getTime()) {
+        return 'due-today-row';
+      }
     }
     return '';
   }, [normalizeDate, isJustificativaVazia]);
 
-  // Função para obter o conteúdo da célula e sua classe CSS
+  // Função para obter o conteúdo e a classe da célula
   const getCellContentAndClassName = useCallback((row, header) => {
     let content = row[header];
     let className = '';
 
     // Formatação específica para CNPJ / CPF
-    if (header === 'CNPJ / CPF' && typeof content === 'string') {
-      content = content.replace(/^=?"?|"?$/g, ''); // Remove '=' e aspas duplas
+    if (header === 'CNPJ / CPF') {
+      if (typeof content === 'string') {
+        content = content.replace(/^=?"?|"?$/g, ''); // Remove =, " do início e fim
+      }
     }
 
     // Lógica para a célula "Justificativa do Abono"
@@ -339,7 +342,7 @@ function App() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica estilo roxo
+      // Se a data limite passou E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica a classe roxa
       if (dataLimite && dataLimite.getTime() < today.getTime() && isJustificativaVazia(content)) {
         content = 'FALTA ABONAR';
         className = 'falta-abonar';
@@ -349,39 +352,36 @@ function App() {
     return { content, className };
   }, [normalizeDate, isJustificativaVazia]);
 
-  // Função para exportar dados para Excel
+
+  // Função para exportar para Excel
   const exportToExcel = useCallback(() => {
-    if (filteredData.length === 0) {
-      alert("Não há dados para exportar.");
-      return;
+    const ws = XLSX.utils.json_to_sheet([]); // Cria uma planilha vazia
+
+    // Adiciona os cabeçalhos
+    XLSX.utils.sheet_add_aoa(ws, [tableHeaders], { origin: 'A1' });
+
+    // Estilo para o cabeçalho
+    for (let i = 0; i < tableHeaders.length; i++) {
+      const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
+      if (!ws[cellRef]) ws[cellRef] = {};
+      ws[cellRef].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4A4A6A" } },
+        border: {
+          top: { style: "thin", color: { rgb: "3A3A5A" } },
+          bottom: { style: "thin", color: { rgb: "3A3A5A" } },
+          left: { style: "thin", color: { rgb: "3A3A5A" } },
+          right: { style: "thin", color: { rgb: "3A3A5A" } },
+        }
+      };
     }
 
-    const ws = XLSX.utils.json_to_sheet(filteredData);
-
-    // Aplica estilos aos cabeçalhos
-    const headerStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "4A4A6A" } },
-      alignment: { horizontal: "center", vertical: "center" },
-      border: {
-        top: { style: "thin", color: { rgb: "6A6A8A" } },
-        bottom: { style: "thin", color: { rgb: "6A6A8A" } },
-        left: { style: "thin", color: { rgb: "6A6A8A" } },
-        right: { style: "thin", color: { rgb: "6A6A8A" } },
-      }
-    };
-    tableHeaders.forEach((header, index) => {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c: index });
-      if (!ws[cellRef]) ws[cellRef] = {};
-      ws[cellRef].s = headerStyle;
-    });
-
-    // Aplica estilos às células e linhas
-    for (let R = 0; R < filteredData.length; R++) {
-      const row = filteredData[R];
+    // Adiciona os dados com estilos
+    for (let rowIndex = 0; rowIndex < filteredData.length; rowIndex++) {
+      const row = filteredData[rowIndex];
       const rowClass = getRowClassByDataLimite(row); // Obtém a classe da linha
-      let rowBgColor = "2A2A4A"; // Cor de fundo padrão da linha
-      let rowFontColor = "E0E0E0"; // Cor da fonte padrão da linha
+      let rowBgColor = "2A2A4A"; // Cor de fundo padrão
+      let rowFontColor = "E0E0E0"; // Cor da fonte padrão
 
       if (rowClass === 'overdue-row-strong') {
         rowBgColor = "CC0000";
@@ -394,15 +394,11 @@ function App() {
         rowFontColor = "333333";
       }
 
-      for (let C = 0; C < tableHeaders.length; C++) {
-        const header = tableHeaders[C];
-        const cellRef = XLSX.utils.encode_cell({ r: R + 1, c: C }); // +1 para pular o cabeçalho
-        if (!ws[cellRef]) ws[cellRef] = {};
-
-        const { content, className } = getCellContentAndClassName(row, header);
-
-        // Aplica o conteúdo formatado
-        ws[cellRef].v = content;
+      for (let colIndex = 0; colIndex < tableHeaders.length; colIndex++) {
+        const header = tableHeaders[colIndex];
+        const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
+        const { content, className } = getCellContentAndClassName(row, header); // Obtém conteúdo e classe do formatado
+        ws[cellRef] = { v: content }; // Adiciona o valor formatado
         ws[cellRef].t = 's'; // Define o tipo como string para evitar formatação automática indesejada
 
         // Estilo da célula
@@ -447,7 +443,7 @@ function App() {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(dataBlob, 'relatorio_oss.xlsx');
-  }, [filteredData, tableHeaders, getCellContentAndClassName, normalizeDate, getRowClassByDataLimite]); // ADICIONADO getRowClassByDataLimite AQUI
+  }, [filteredData, tableHeaders, getCellContentAndClassName, getRowClassByDataLimite]); // REMOVIDO normalizeDate AQUI
 
   return (
     <div className="App">
