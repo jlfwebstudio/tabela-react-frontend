@@ -1,0 +1,417 @@
+/* frontend/src/App.css */
+
+/* Estilos Globais e Reset */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1a1a2e; /* Fundo escuro principal */
+  color: #e0e0e0; /* Cor de texto padrão */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  gap: 25px; /* Espaçamento entre as seções */
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Cabeçalho da Aplicação */
+.App-header {
+  background-color: #2a2a4a; /* Azul escuro para o cabeçalho */
+  width: 100%;
+  max-width: 1400px;
+  padding: 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.App-header h1 {
+  color: #87ceeb; /* Azul claro para o título */
+  margin: 0;
+  font-size: 2.5em;
+  letter-spacing: 1px;
+}
+
+/* Controles (Upload, Contador, Exportar) */
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1400px;
+  background-color: #2a2a4a;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.file-upload-section, .info-actions-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
+}
+
+/* Estilo do input de arquivo customizado */
+input[type="file"] {
+  display: none;
+}
+
+.custom-file-upload {
+  background-color: #007bff; /* Azul vibrante */
+  color: white;
+  padding: 14px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.custom-file-upload:hover {
+  background-color: #0056b3; /* Azul mais escuro no hover */
+  transform: translateY(-2px);
+}
+
+.file-name-display {
+  flex-grow: 1; /* Ocupa o espaço restante */
+  text-align: left;
+  padding: 8px 15px;
+  background-color: #3a3a5a;
+  border-radius: 5px;
+  color: #bbb;
+  max-width: 300px; /* Limita a largura para nomes de arquivo muito longos */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Contador de OSs em Atraso */
+.overdue-count {
+  background-color: #3a3a5a;
+  color: #e0e0e0;
+  padding: 14px 25px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.overdue-count .count-number {
+  color: #ff6b6b; /* Vermelho para o número de atrasos */
+  font-size: 1.3em;
+}
+
+/* Botão de Exportar */
+.export-button {
+  background-color: #28a745; /* Verde para exportar */
+  color: white;
+  padding: 14px 25px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #218838; /* Verde mais escuro no hover */
+  transform: translateY(-2px);
+}
+
+.export-button:disabled {
+  background-color: #6c757d; /* Cinza quando desabilitado */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Mensagens de Carregamento e Erro */
+.loading-message, .error-message {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+.loading-message {
+  background-color: #4a4a6a;
+  color: #87ceeb;
+}
+
+.error-message {
+  background-color: #8B0000; /* Vermelho escuro */
+  color: white;
+}
+
+/* Tabela de Dados */
+.data-table-container {
+  overflow-x: auto; /* Adiciona scroll horizontal se a tabela for muito larga */
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  background-color: #2a2a4a; /* Fundo da tabela */
+  width: 100%;
+  max-width: 1400px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: separate; /* Permite border-spacing */
+  border-spacing: 0; /* Remove espaçamento padrão */
+  min-width: 1200px; /* Largura mínima para evitar quebras de layout */
+}
+
+.data-table th, .data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #4a4a6a; /* Borda inferior das células */
+  white-space: nowrap; /* Impede que o texto quebre linha */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #e0e0e0; /* Cor do texto padrão para células */
+}
+
+.data-table th {
+  background-color: #3a3a5a; /* Fundo do cabeçalho */
+  color: #e0e0e0;
+  font-weight: bold;
+  position: sticky; /* Cabeçalho fixo ao rolar */
+  top: 0;
+  z-index: 10; /* Garante que o cabeçalho fique acima do conteúdo da tabela */
+  border-top: 1px solid #5a5a7a; /* Borda superior para cabeçalho */
+  border-left: 1px solid #5a5a7a; /* Borda esquerda para cabeçalho */
+  position: relative; /* ESSENCIAL: Define o contexto de posicionamento para o dropdown */
+}
+
+.data-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.data-table th:last-child {
+  border-top-right-radius: 8px;
+  border-right: 1px solid #5a5a7a; /* Borda direita para a última coluna do cabeçalho */
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none; /* Remove a borda inferior da última linha */
+}
+
+.data-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.data-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* Estilos para ordenação */
+.sortable-header {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sort-icon {
+  margin-left: 5px;
+  color: #87ceeb;
+}
+
+/* Estilos para o filtro */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.filter-icon {
+  cursor: pointer;
+  color: #e0e0e0;
+  padding: 5px;
+  border-radius: 4px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.filter-icon:hover {
+  color: #87ceeb;
+  background-color: #4a4a6a;
+}
+
+.filter-icon.filter-active {
+  color: #87ceeb; /* Cor para indicar que o filtro está ativo */
+}
+
+.filter-dropdown {
+  position: fixed; /* Alterado para fixed para melhor posicionamento */
+  background-color: #3a3a5a;
+  border: 1px solid #5a5a7a;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  z-index: 100;
+  min-width: 220px;
+  max-height: 300px; /* Altura máxima para scroll */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-options-container {
+  max-height: 200px; /* Altura máxima para a lista de opções */
+  overflow-y: auto; /* Adiciona scroll se houver muitas opções */
+  padding-right: 5px; /* Espaço para a barra de rolagem */
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  cursor: pointer;
+  color: #e0e0e0;
+}
+
+.filter-option:hover {
+  background-color: #4a4a6a;
+  border-radius: 4px;
+}
+
+.filter-option input[type="checkbox"] {
+  accent-color: #87ceeb; /* Cor do checkbox */
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  border-top: 1px solid #4a4a6a;
+  padding-top: 10px;
+}
+
+.filter-actions button {
+  background-color: #5a5a7a;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: background-color 0.2s ease;
+  flex: 1 1 auto; /* Permite que os botões se ajustem e quebrem linha */
+  min-width: 48%; /* Para ter 2 botões por linha em telas pequenas */
+}
+
+.filter-actions button:hover {
+  background-color: #6a6a8a;
+}
+
+/* Cores condicionais das linhas da tabela */
+.overdue-row {
+  background-color: #4a2a2a; /* Vermelho escuro para linhas atrasadas */
+}
+
+.due-today-row {
+  background-color: #4a4a2a; /* Amarelo escuro para linhas vencendo hoje */
+}
+
+/* Cor da célula "FALTA ABONAR" */
+.falta-abonar {
+  background-color: #800080; /* Roxo */
+  color: white;
+  font-weight: bold;
+}
+
+/* Ajustes de largura de coluna (exemplo, ajuste conforme necessário) */
+.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 8%; min-width: 120px; } /* Chamado */
+.data-table th:nth-child(2), .data-table td:nth-child(2) { width: 10%; min-width: 150px; } /* Numero Referencia */
+.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 10%; min-width: 150px; } /* Contratante */
+.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 12%; min-width: 180px; } /* Serviço */
+.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 8%; min-width: 120px; } /* Status */
+.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 8%; min-width: 120px; } /* Data Limite */
+.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 10%; min-width: 150px; } /* Cliente */
+.data-table th:nth-child(8), .data-table td:nth-child(8) { width: 8%; min-width: 120px; } /* CNPJ / CPF */
+.data-table th:nth-child(9), .data-table td:nth-child(9) { width: 8%; min-width: 120px; } /* Cidade */
+.data-table th:nth-child(10), .data-table td:nth-child(10) { width: 8%; min-width: 120px; } /* Técnico */
+.data-table th:nth-child(11), .data-table td:nth-child(11) { width: 8%; min-width: 120px; } /* Prestador */
+.data-table th:nth-child(12), .data-table td:nth-child(12) { width: 12%; min-width: 180px; } /* Justificativa do Abono */
+
+/* Media Queries para Responsividade */
+@media (max-width: 1200px) {
+  .App-header h1 {
+    font-size: 2.2em;
+  }
+  .custom-file-upload, .export-button, .overdue-count {
+    font-size: 1em;
+    padding: 12px 20px;
+  }
+  .overdue-count .count-number {
+    font-size: 1.2em;
+  }
+  .data-table th, .data-table td {
+    padding: 10px 12px;
+    font-size: 0.9em;
+  }
+  .data-table {
+    min-width: 1000px; /* Reduz a largura mínima da tabela */
+  }
+}
+
+@media (max-width: 768px) {
+  .App {
+    padding: 15px;
+    gap: 20px;
+  }
+  .App-header {
+    padding: 15px 20px;
+  }
+  .App-header h1 {
+    font-size: 1.8em;
+  }
+  .controls-container {
+    padding: 15px;
+    gap: 15px;
+  }
+  .file-upload-section, .info-actions-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .custom-file-upload, .export-button, .overdue-count {
+    width: 100%; /* Ocupa a largura total em telas menores */
+    justify-content: center;
+    text-align: center;
+  }
+  .file-name-display {
+    max-width: 100%;
+    text-align: center;
+  }
+  .data-table-container {
+    padding: 10px;
+  }
+  .data-table {
+    min-width: 800px; /* Mais uma redução para telas menores */
+  }
+  .filter-dropdown {
+    min-width: 180px;
+    max-width: 90vw; /* Limita a largura do dropdown à largura da viewport */
+    max-height: 200px; /* Reduz a altura máxima do dropdown */
+  }
+}

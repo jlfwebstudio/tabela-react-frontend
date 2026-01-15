@@ -1,0 +1,450 @@
+/* frontend/src/App.css */
+
+/* Estilos Globais e Reset */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1a1a2e; /* Fundo escuro principal */
+  color: #e0e0e0; /* Texto claro padrão */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  min-height: 100vh; /* Garante que o body ocupe a altura total da viewport */
+  display: flex; /* Para centralizar o App */
+  justify-content: center; /* Centraliza horizontalmente */
+  align-items: flex-start; /* Alinha no topo verticalmente */
+  padding-top: 30px; /* Espaçamento do topo */
+  box-sizing: border-box; /* Inclui padding e borda na largura/altura total */
+}
+
+.App {
+  background-color: #2a2a4a; /* Fundo do container principal do app */
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  padding: 25px;
+  max-width: 1400px; /* Largura máxima do app */
+  width: 95%; /* Ocupa 95% da largura disponível */
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  margin-bottom: 30px; /* Espaçamento inferior para não ficar colado no fim da tela */
+}
+
+/* Cabeçalho do App */
+.App-header {
+  background-color: #3a3a5a;
+  padding: 20px 30px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 2.5em;
+  color: #87ceeb; /* Cor azul claro para o título */
+  letter-spacing: 1px;
+}
+
+/* Container de Controles (Upload, Contador, Exportar) */
+.controls-container {
+  display: flex;
+  flex-direction: column; /* Coloca os grupos em coluna para melhor organização */
+  gap: 20px;
+  padding: 20px;
+  background-color: #3a3a5a;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.file-upload-section, .info-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
+}
+
+/* Estilo do Input de Arquivo Customizado */
+.custom-file-upload {
+  background-color: #87ceeb; /* Azul claro */
+  color: #1a1a2e; /* Texto escuro */
+  padding: 14px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.custom-file-upload:hover {
+  background-color: #6cb3d9; /* Azul mais escuro no hover */
+  transform: translateY(-2px);
+}
+
+#file-upload {
+  display: none; /* Esconde o input de arquivo original */
+}
+
+.file-name-display {
+  flex-grow: 1; /* Permite que o nome do arquivo ocupe o espaço restante */
+  padding: 10px 15px;
+  background-color: #4a4a6a;
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-style: italic;
+  white-space: nowrap; /* Impede que o texto quebre linha */
+  overflow: hidden; /* Esconde o excesso de texto */
+  text-overflow: ellipsis; /* Adiciona reticências se o texto for muito longo */
+  max-width: 300px; /* Limita a largura do display do nome do arquivo */
+}
+
+/* Contador de OSs em Atraso */
+.overdue-count {
+  background-color: #5a5a7a; /* Cor de fundo para o contador */
+  padding: 14px 25px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.overdue-count .count-number {
+  color: #ff6b6b; /* Vermelho para o número de atrasos */
+  font-size: 1.3em;
+}
+
+/* Botão de Exportar */
+.export-button {
+  background-color: #28a745; /* Verde para exportar */
+  color: white;
+  padding: 14px 25px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #218838; /* Verde mais escuro no hover */
+  transform: translateY(-2px);
+}
+
+.export-button:disabled {
+  background-color: #6c757d; /* Cinza quando desabilitado */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Mensagens de Carregamento e Erro */
+.loading-message, .error-message {
+  text-align: center;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+.loading-message {
+  background-color: #4a4a6a;
+  color: #87ceeb;
+}
+
+.error-message {
+  background-color: #8B0000; /* Vermelho escuro */
+  color: white;
+}
+
+/* Tabela de Dados */
+.data-table-container {
+  overflow-x: auto; /* Adiciona scroll horizontal se a tabela for muito larga */
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  background-color: #2a2a4a; /* Fundo da tabela */
+  /* Removido position: relative e z-index daqui para que o dropdown possa flutuar acima */
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: separate; /* Permite border-spacing */
+  border-spacing: 0; /* Remove espaçamento padrão */
+  min-width: 1200px; /* Largura mínima para evitar quebras de layout */
+}
+
+.data-table th, .data-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #4a4a6a; /* Borda inferior das células */
+  white-space: nowrap; /* Impede que o texto quebre linha */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-table th {
+  background-color: #3a3a5a; /* Fundo do cabeçalho */
+  color: #e0e0e0;
+  font-weight: bold;
+  position: sticky; /* Cabeçalho fixo ao rolar */
+  top: 0;
+  z-index: 10; /* Garante que o cabeçalho fique acima do conteúdo da tabela */
+  border-top: 1px solid #5a5a7a; /* Borda superior para cabeçalho */
+  border-left: 1px solid #5a5a7a; /* Borda esquerda para cabeçalho */
+  position: relative; /* ADICIONADO: Essencial para o posicionamento do dropdown */
+}
+
+.data-table th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.data-table th:last-child {
+  border-top-right-radius: 8px;
+  border-right: 1px solid #5a5a7a; /* Borda direita para a última coluna do cabeçalho */
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none; /* Remove a borda inferior da última linha */
+}
+
+.data-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.data-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* Estilos para linhas com Data Limite */
+.overdue-row td {
+  background-color: #8B0000 !important; /* Vermelho escuro para atrasadas */
+  color: white !important;
+}
+
+.due-today-row td {
+  background-color: #B8860B !important; /* Amarelo escuro para hoje */
+  color: white !important;
+}
+
+/* Estilo para a célula "FALTA ABONAR" (roxo) */
+/* Aumenta a especificidade para garantir que o roxo prevaleça sobre as cores de linha */
+.data-table tbody tr.overdue-row td.falta-abonar,
+.data-table tbody tr.due-today-row td.falta-abonar,
+.data-table tbody tr td.falta-abonar {
+  background-color: #8A2BE2 !important; /* Roxo */
+  color: white !important; /* Texto branco para contraste */
+  font-weight: bold;
+  text-align: center;
+}
+
+
+/* Ícones de ordenação e filtro */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  /* Removido position: relative daqui, movido para th */
+  z-index: 1; /* Garante que o conteúdo do cabeçalho tenha um z-index */
+}
+
+.sortable-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  flex-grow: 1; /* Permite que o texto ocupe o espaço */
+}
+
+.sort-icon {
+  margin-left: 5px;
+  color: #87ceeb;
+}
+
+.filter-icon {
+  cursor: pointer;
+  color: #87ceeb;
+  transition: color 0.2s ease;
+  z-index: 20; /* Garante que o ícone de filtro esteja acima do dropdown */
+}
+
+.filter-icon:hover, .filter-icon.filter-active {
+  color: #4dc9e6;
+}
+
+/* Dropdown de Filtro */
+.filter-dropdown {
+  position: absolute; /* Posicionamento absoluto em relação ao .header-content */
+  background-color: #3a3a5a;
+  border: 1px solid #5a5a7a;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  z-index: 9999; /* AUMENTADO AINDA MAIS O Z-INDEX para garantir que apareça acima de TUDO */
+  padding: 15px;
+  min-width: 200px; /* Garante uma largura mínima */
+  max-width: 300px; /* Largura máxima para não ficar muito grande */
+  max-height: 250px; /* Altura máxima para o scroll */
+  overflow-y: auto; /* Adiciona scroll vertical quando o conteúdo excede a altura máxima */
+  text-align: left;
+  /* top e left serão definidos via JS */
+}
+
+/* Novos estilos para os botões de Selecionar/Desmarcar Tudo */
+.filter-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.filter-controls button {
+  flex: 1; /* Faz os botões ocuparem o mesmo espaço */
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  background-color: #5a5a7a; /* Cor neutra */
+  color: #e0e0e0;
+}
+
+.filter-controls button:hover {
+  background-color: #6a6a8a;
+}
+
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.filter-options label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #e0e0e0;
+}
+
+.filter-options input[type="checkbox"] {
+  accent-color: #87ceeb; /* Cor do checkbox */
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.filter-actions button {
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.filter-actions button:first-child { /* Botão Aplicar */
+  background-color: #87ceeb;
+  color: #1a1a2e;
+}
+
+.filter-actions button:first-child:hover {
+  background-color: #6cb3d9;
+}
+
+.filter-actions button:last-child { /* Botão Limpar */
+  background-color: #5a5a7a;
+  color: #e0e0e0;
+}
+
+.filter-actions button:last-child:hover {
+  background-color: #6a6a8a;
+}
+
+/* Larguras das colunas */
+.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 8%; min-width: 120px; } /* Chamado */
+.data-table th:nth-child(2), .data-table td:nth-child(2) { width: 10%; min-width: 150px; } /* Numero Referencia */
+.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 10%; min-width: 150px; } /* Contratante */
+.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 12%; min-width: 180px; } /* Serviço */
+.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 8%; min-width: 120px; } /* Status */
+.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 8%; min-width: 120px; } /* Data Limite */
+.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 10%; min-width: 150px; } /* Cliente */
+.data-table th:nth-child(8), .data-table td:nth-child(8) { width: 8%; min-width: 120px; } /* CNPJ / CPF */
+.data-table th:nth-child(9), .data-table td:nth-child(9) { width: 8%; min-width: 120px; } /* Cidade */
+.data-table th:nth-child(10), .data-table td:nth-child(10) { width: 8%; min-width: 120px; } /* Técnico */
+.data-table th:nth-child(11), .data-table td:nth-child(11) { width: 8%; min-width: 120px; } /* Prestador */
+.data-table th:nth-child(12), .data-table td:nth-child(12) { width: 12%; min-width: 180px; } /* Justificativa do Abono */
+
+/* Media Queries para Responsividade */
+@media (max-width: 1200px) {
+  .App-header h1 {
+    font-size: 2.2em;
+  }
+  .custom-file-upload, .export-button, .overdue-count {
+    font-size: 1em;
+    padding: 12px 20px;
+  }
+  .overdue-count .count-number {
+    font-size: 1.2em;
+  }
+  .data-table th, .data-table td {
+    padding: 10px 12px;
+    font-size: 0.9em;
+  }
+  .data-table {
+    min-width: 1000px; /* Reduz a largura mínima da tabela */
+  }
+}
+
+@media (max-width: 768px) {
+  .App {
+    padding: 15px;
+    gap: 20px;
+  }
+  .App-header {
+    padding: 15px 20px;
+  }
+  .App-header h1 {
+    font-size: 1.8em;
+  }
+  .controls-container {
+    padding: 15px;
+    gap: 15px;
+  }
+  .file-upload-section, .info-actions-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .custom-file-upload, .export-button, .overdue-count {
+    width: 100%; /* Ocupa a largura total em telas menores */
+    justify-content: center;
+    text-align: center;
+  }
+  .file-name-display {
+    max-width: 100%;
+    text-align: center;
+  }
+  .data-table-container {
+    padding: 10px;
+  }
+  .data-table {
+    min-width: 800px; /* Mais uma redução para telas menores */
+  }
+  .filter-dropdown {
+    min-width: 180px;
+    max-width: 90vw; /* Limita a largura do dropdown à largura da viewport */
+    max-height: 200px; /* Reduz a altura máxima do dropdown */
+  }
+}
