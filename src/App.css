@@ -30,102 +30,145 @@ code {
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  position: relative; /* Necessário para posicionar o contador */
 }
 
 .App-header h1 {
   margin-bottom: 20px;
-  font-size: 2.5em;
-  color: #61dafb;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
+  font-size: 2.2em;
 }
 
 .file-upload-container {
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #4CAF50; /* Verde */
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.file-upload-container:hover {
-  background-color: #45a049;
+  margin-bottom: 20px;
 }
 
 .custom-file-upload {
+  border: 2px solid #4472C4;
   display: inline-block;
+  padding: 10px 20px;
   cursor: pointer;
-  font-size: 1.1em;
+  border-radius: 8px;
+  background-color: #4472C4;
+  color: white;
   font-weight: bold;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  white-space: nowrap; /* Impede que o texto quebre */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px; /* Limita a largura para o ellipsis funcionar */
 }
 
-.file-upload-container input[type="file"] {
+.custom-file-upload:hover {
+  background-color: #335a9b;
+  border-color: #335a9b;
+}
+
+#file-upload {
   display: none;
 }
 
 .file-name-display {
+  color: #bbb;
   font-size: 0.9em;
-  color: #e0e0e0;
   max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px; /* Espaço abaixo dos botões */
+  flex-wrap: wrap; /* Permite que os botões quebrem linha em telas menores */
+  justify-content: center;
+}
+
 .export-button {
-  background-color: #007bff; /* Azul */
+  background-color: #4472C4;
   color: white;
-  padding: 10px 20px;
   border: none;
+  padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1.1em;
+  font-size: 1em;
   font-weight: bold;
   transition: background-color 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-.export-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.export-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
+.export-button:hover {
+  background-color: #335a9b;
 }
 
 .overdue-count {
-  background-color: #dc3545; /* Vermelho */
+  background-color: #FF0000; /* Vermelho forte */
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border-radius: 8px;
-  font-size: 1.1em;
   font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  font-size: 1em;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.overdue-count .count-number {
-  font-size: 1.2em;
-  font-weight: bolder;
+/* NOVO ESTILO PARA O CAMPO DE PESQUISA GLOBAL */
+.search-bar-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* Limita a largura do campo de pesquisa */
+  margin-top: 10px; /* Espaço acima do campo de pesquisa */
+  margin-bottom: 20px; /* Espaço abaixo do campo de pesquisa */
+}
+
+.global-search-input {
+  width: 100%;
+  padding: 10px 15px 10px 40px; /* Padding para o ícone */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1em;
+  box-sizing: border-box; /* Garante que padding não aumente a largura total */
+}
+
+.global-search-input:focus {
+  outline: none;
+  border-color: #4472C4;
+  box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 1em;
+}
+
+
+.loading-message, .error-message {
+  margin: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.loading-message {
+  background-color: #e0f7fa;
+  color: #00796b;
 }
 
 .error-message {
-  color: #dc3545;
-  margin-top: 20px;
-  font-weight: bold;
+  background-color: #ffebee;
+  color: #d32f2f;
 }
 
 .data-table-container {
@@ -133,39 +176,36 @@ code {
   margin: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  flex-grow: 1; /* Permite que a tabela ocupe o espaço restante */
+  background-color: #ffffff; /* Fundo branco para o container da tabela */
 }
 
 .data-table {
-  width: 100%; /* Ocupa a largura total do container */
+  width: 100%;
   border-collapse: collapse;
-  min-width: 1800px; /* Aumentado para acomodar mais conteúdo */
+  min-width: 1200px; /* Garante que a tabela tenha uma largura mínima para o scroll */
 }
 
-.data-table th,
-.data-table td {
+.data-table th, .data-table td {
   border: 1px solid #ddd;
   padding: 12px 15px;
   text-align: left;
-  white-space: nowrap; /* Impede que o texto quebre linha */
+  white-space: nowrap; /* Impede que o texto quebre dentro da célula */
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #333; /* Cor do texto padrão para todas as células */
+  color: #333; /* Cor do texto padrão */
 }
 
 .data-table th {
-  background-color: #f2f2f2;
+  background-color: #4472C4; /* Azul escuro */
+  color: white;
   font-weight: bold;
-  color: #333;
-  position: sticky;
+  position: sticky; /* Fixa o cabeçalho na rolagem */
   top: 0;
-  z-index: 10;
+  z-index: 1; /* Garante que o cabeçalho fique acima do conteúdo */
 }
 
-/* Ajuste para as linhas que não têm cor específica (nem atrasadas, nem vencendo hoje) */
 .data-table tbody tr {
-  background-color: #ffffff; /* Fundo branco padrão para linhas ímpares */
+  background-color: #ffffff; /* Fundo branco para linhas ímpares */
 }
 
 .data-table tbody tr:nth-child(even) {
@@ -173,18 +213,18 @@ code {
 }
 
 .data-table tbody tr:hover {
-  background-color: #e0e0e0; /* Fundo um pouco mais escuro ao passar o mouse */
+  background-color: #e0e0e0; /* Fundo mais escuro ao passar o mouse */
 }
 
 /* Classes para cores das linhas */
 .overdue-strong {
   background-color: #FF0000 !important; /* Vermelho forte para TODOS atrasados */
-  color: white !important; /* Texto branco para contraste */
+  color: white !important;
 }
 
 .due-today {
   background-color: #FFFF00 !important; /* Amarelo para hoje */
-  color: #333 !important; /* Texto escuro para contraste */
+  color: #333 !important;
 }
 
 /* Classe para "FALTA ABONAR" */
@@ -294,12 +334,12 @@ code {
 }
 
 /* Larguras de colunas específicas */
-.col-numero-referencia { width: 150px; }
-.col-cnpj-cpf { width: 180px; }
-.col-cidade { width: 150px; }
-.col-servico { width: 250px; }
-.col-tecnico { width: 250px; }
-.col-justificativa { width: 300px; }
+.col-numero-referencia { width: 150px; } /* Aumentado */
+.col-cnpj-cpf { width: 180px; } /* Aumentado */
+.col-cidade { width: 150px; } /* Aumentado */
+.col-servico { width: 250px; } /* Aumentado */
+.col-tecnico { width: 250px; } /* Aumentado */
+.col-justificativa { width: 300px; } /* Aumentado */
 
 
 /* Responsividade */
@@ -336,5 +376,14 @@ code {
   }
   .filter-actions button {
     min-width: 100%; /* Botões de ação em coluna única em telas pequenas */
+  }
+  .search-bar-container {
+    max-width: 100%; /* Ocupa toda a largura em telas pequenas */
+  }
+  .global-search-input {
+    padding-left: 15px; /* Remove padding extra do ícone em telas pequenas se necessário */
+  }
+  .search-icon {
+    left: 10px; /* Ajusta a posição do ícone em telas pequenas */
   }
 }
