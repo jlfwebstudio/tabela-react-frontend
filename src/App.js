@@ -1,7 +1,7 @@
 // frontend/src/App.js
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import *as XLSX from 'xlsx-js-style';
+import * as XLSX from 'xlsx-js-style';
 // eslint-disable-next-line no-unused-vars
 import { saveAs } from 'file-saver';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -20,32 +20,37 @@ function App() {
   const filterIconRefs = useRef({});
   const [filterDropdownPosition, setFilterDropdownPosition] = useState({ top: 0, left: 0 });
   const [overdueCount, setOverdueCount] = useState(0);
-  const [sortConfig, setSortConfig] = useState({ key: 'Data Limite', direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({ key: 'DATA LIMITE', direction: 'ascending' }); // Ajustado para cabeçalho normalizado
   const [selectedFileName, setSelectedFileName] = useState('');
 
-  const tableHeaders = useMemo(() => [
-    'Chamado',
-    'Numero Referencia',
-    'Contratante',
-    'Serviço',
-    'Status',
-    'Data Limite',
-    'Cliente',
-    'CNPJ / CPF',
-    'Cidade',
-    'Técnico',
-    'Prestador',
-    'Justificativa do Abono',
+  // NOVO: Mapeamento dos cabeçalhos para exibição e para acesso aos dados
+  const displayHeaders = useMemo(() => [
+    { key: 'CHAMADO', display: 'Chamado' },
+    { key: 'NUMERO REFERENCIA', display: 'Numero Referencia' },
+    { key: 'CONTRATANTE', display: 'Contratante' },
+    { key: 'SERVICO', display: 'Serviço' },
+    { key: 'STATUS', display: 'Status' },
+    { key: 'DATA LIMITE', display: 'Data Limite' },
+    { key: 'CLIENTE', display: 'Cliente' },
+    { key: 'CNPJ / CPF', display: 'CNPJ / CPF' },
+    { key: 'CIDADE', display: 'Cidade' },
+    { key: 'TECNICO', display: 'Técnico' },
+    { key: 'PRESTADOR', display: 'Prestador' },
+    { key: 'JUSTIFICATIVA DO ABONO', display: 'Justificativa do Abono' },
   ], []);
 
-  // Lista de status permitidos
+  // Usar apenas as chaves para a lógica interna
+  const tableHeaders = useMemo(() => displayHeaders.map(h => h.key), [displayHeaders]);
+
+  // Lista de status permitidos (normalizados para comparação)
   const allowedStatuses = useMemo(() => [
     'ENCAMINHADA',
-    'EM TRANSFERÊNCIA',
+    'EM TRANSFERENCIA', // Normalizado
     'EM CAMPO',
     'REENCAMINHADO',
-    'PROCEDIMENTO TÉCNICO'
-  ], []);
+    'PROCEDIMENTO TECNICO' // Normalizado
+  ].map(s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim()), []);
+
 
   const normalizeForComparison = useCallback((str) => {
     if (typeof str !== 'string') return str;
@@ -87,7 +92,7 @@ function App() {
     today.setHours(0, 0, 0, 0);
 
     const count = filteredData.filter(row => {
-      const dataLimiteStr = row['Data Limite'];
+      const dataLimiteStr = row['DATA LIMITE']; // Usar cabeçalho normalizado
       if (!dataLimiteStr) return false;
 
       const parts = dataLimiteStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
@@ -109,16 +114,16 @@ function App() {
 
     // 1. Filtrar por status permitidos (SEMPRE ATIVO)
     currentFilteredData = currentFilteredData.filter(row => {
-      const status = normalizeForComparison(row['Status'] || '');
-      return allowedStatuses.some(allowedStatus => normalizeForComparison(allowedStatus) === status);
+      const status = normalizeForComparison(row['STATUS'] || ''); // Usar cabeçalho normalizado
+      return allowedStatuses.includes(status);
     });
 
     // 2. Aplicar filtros de coluna
-    Object.keys(activeFilters).forEach(header => {
-      const selectedValues = Object.keys(activeFilters[header]).filter(key => activeFilters[header][key]);
+    Object.keys(activeFilters).forEach(headerKey => { // headerKey é o nome normalizado
+      const selectedValues = Object.keys(activeFilters[headerKey]).filter(key => activeFilters[headerKey][key]);
       if (selectedValues.length > 0) {
         currentFilteredData = currentFilteredData.filter(row => {
-          const cellValue = String(row[header] || '').trim();
+          const cellValue = String(row[headerKey] || '').trim();
           const normalizedCellValue = normalizeForComparison(cellValue);
           return selectedValues.some(selectedValue => {
             const normalizedSelectedValue = normalizeForComparison(selectedValue);
@@ -167,14 +172,14 @@ function App() {
     }
   };
 
-  const getUniqueColumnValues = useCallback((header) => {
+  const getUniqueColumnValues = useCallback((headerKey) => { // headerKey é o nome normalizado
     const values = new Set();
     data.forEach(row => {
-      const value = String(row[header] || '').trim();
+      const value = String(row[headerKey] || '').trim();
       // Filtrar valores de status para mostrar apenas os permitidos no dropdown
-      if (header === 'Status') {
+      if (headerKey === 'STATUS') { // Usar cabeçalho normalizado
         const normalizedStatus = normalizeForComparison(value);
-        if (!allowedStatuses.some(allowedStatus => normalizeForComparison(allowedStatus) === normalizedStatus)) {
+        if (!allowedStatuses.includes(normalizedStatus)) {
           return; // Ignora status não permitidos
         }
       }
@@ -188,19 +193,19 @@ function App() {
     return sortedValues;
   }, [data, allowedStatuses, normalizeForComparison]);
 
-  const toggleFilterDropdown = useCallback((header, event) => {
+  const toggleFilterDropdown = useCallback((headerKey, event) => { // headerKey é o nome normalizado
     event.stopPropagation();
-    if (openDropdown === header) {
+    if (openDropdown === headerKey) {
       setOpenDropdown(null);
     } else {
-      setOpenDropdown(header);
-      const iconRect = filterIconRefs.current[header].getBoundingClientRect();
+      setOpenDropdown(headerKey);
+      const iconRect = filterIconRefs.current[headerKey].getBoundingClientRect();
       setFilterDropdownPosition({
         top: iconRect.bottom + window.scrollY + 5,
         left: iconRect.left + window.scrollX,
       });
-      const currentSelections = activeFilters[header] || {};
-      const uniqueValues = getUniqueColumnValues(header);
+      const currentSelections = activeFilters[headerKey] || {};
+      const uniqueValues = getUniqueColumnValues(headerKey);
       const newSelections = {};
       uniqueValues.forEach(value => {
         newSelections[value] = currentSelections[value] !== undefined ? currentSelections[value] : true;
@@ -230,27 +235,27 @@ function App() {
     }));
   }, []);
 
-  const applyFilters = useCallback((header) => {
+  const applyFilters = useCallback((headerKey) => { // headerKey é o nome normalizado
     const selected = Object.keys(filterSelections).filter(key => filterSelections[key]);
     setActiveFilters(prev => ({
       ...prev,
-      [header]: selected.reduce((acc, val) => ({ ...acc, [val]: true }), {})
+      [headerKey]: selected.reduce((acc, val) => ({ ...acc, [val]: true }), {})
     }));
     setOpenDropdown(null);
   }, [filterSelections]);
 
-  const clearFilters = useCallback((header) => {
+  const clearFilters = useCallback((headerKey) => { // headerKey é o nome normalizado
     setActiveFilters(prev => {
       const newFilters = { ...prev };
-      delete newFilters[header];
+      delete newFilters[headerKey];
       return newFilters;
     });
     setFilterSelections({});
     setOpenDropdown(null);
   }, []);
 
-  const toggleSelectAll = useCallback((header, selectAll) => {
-    const uniqueValues = getUniqueColumnValues(header);
+  const toggleSelectAll = useCallback((headerKey, selectAll) => { // headerKey é o nome normalizado
+    const uniqueValues = getUniqueColumnValues(headerKey);
     const newSelections = {};
     uniqueValues.forEach(value => {
       newSelections[value] = selectAll;
@@ -258,7 +263,7 @@ function App() {
     setFilterSelections(newSelections);
   }, [getUniqueColumnValues]);
 
-  const requestSort = useCallback((key) => {
+  const requestSort = useCallback((key) => { // key é o nome normalizado
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
@@ -274,7 +279,7 @@ function App() {
         const aValue = String(a[sortConfig.key] || '').trim();
         const bValue = String(b[sortConfig.key] || '').trim();
 
-        if (sortConfig.key === 'Data Limite') {
+        if (sortConfig.key === 'DATA LIMITE') { // Usar cabeçalho normalizado
           const parseDate = (dateString) => {
             const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
             if (parts) {
@@ -304,8 +309,8 @@ function App() {
 
   // Função para determinar a classe da linha com base na Data Limite e Justificativa
   const getRowClassByDataLimite = useCallback((row) => {
-    const dataLimiteStr = row['Data Limite'];
-    const justificativaAbono = String(row['Justificativa do Abono'] || '').trim();
+    const dataLimiteStr = row['DATA LIMITE']; // Usar cabeçalho normalizado
+    const justificativaAbono = String(row['JUSTIFICATIVA DO ABONO'] || '').trim(); // Usar cabeçalho normalizado
 
     if (!dataLimiteStr) return '';
 
@@ -318,8 +323,7 @@ function App() {
     today.setHours(0, 0, 0, 0);
     dataLimite.setHours(0, 0, 0, 0);
 
-    // CORREÇÃO AQUI: Lógica para "FALTA ABONAR" na linha
-    // A linha fica roxa se estiver atrasada E a justificativa estiver vazia
+    // Lógica para "FALTA ABONAR" na linha: roxo se atrasada E justificativa vazia
     if (dataLimite < today && justificativaAbono === '') {
       return 'falta-abonar';
     } else if (dataLimite < today) {
@@ -332,25 +336,26 @@ function App() {
 
 
   // Função para obter o conteúdo e a classe da célula
-  const getCellContentAndClassName = useCallback((row, header) => {
-    let content = row[header];
+  const getCellContentAndClassName = useCallback((row, headerKey) => { // headerKey é o nome normalizado
+    let content = row[headerKey];
     let className = '';
 
-    if (header === 'CNPJ / CPF') {
+    if (headerKey === 'CNPJ / CPF') { // Usar cabeçalho normalizado
       content = formatCnpjCpf(content);
       className = 'col-cnpj-cpf';
-    } else if (header === 'Data Limite') {
+    } else if (headerKey === 'DATA LIMITE') { // Usar cabeçalho normalizado
       content = formatDataLimite(content);
-    } else if (header === 'Status') {
+    } else if (headerKey === 'STATUS') { // Usar cabeçalho normalizado
       // Normaliza o status para exibição, garantindo que seja um dos 5 permitidos
       const normalizedStatus = normalizeForComparison(content || '');
+      // Encontra o status original na lista de permitidos para exibição, ou usa o original se não encontrar
       content = allowedStatuses.find(s => normalizeForComparison(s) === normalizedStatus) || content;
     }
 
-    // CORREÇÃO AQUI: Lógica para "FALTA ABONAR" na célula
-    if (header === 'Justificativa do Abono') {
-      const dataLimiteStr = row['Data Limite'];
-      const justificativaAbono = String(row['Justificativa do Abono'] || '').trim();
+    // Lógica para "FALTA ABONAR" na célula
+    if (headerKey === 'JUSTIFICATIVA DO ABONO') { // Usar cabeçalho normalizado
+      const dataLimiteStr = row['DATA LIMITE']; // Usar cabeçalho normalizado
+      const justificativaAbono = String(row['JUSTIFICATIVA DO ABONO'] || '').trim(); // Usar cabeçalho normalizado
 
       const parts = dataLimiteStr ? dataLimiteStr.match(/(\d{2})\/(\d{2})\/(\d{4})/) : null;
       const dataLimite = parts ? new Date(Number(parts[3]), Number(parts[2]) - 1, Number(parts[1])) : null;
@@ -365,12 +370,12 @@ function App() {
       }
     }
 
-    // Adiciona classes de largura de coluna
-    if (header === 'Numero Referencia') className += ' col-numero-referencia';
-    else if (header === 'Cidade') className += ' col-cidade';
-    else if (header === 'Serviço') className += ' col-servico';
-    else if (header === 'Técnico') className += ' col-tecnico';
-    else if (header === 'Justificativa do Abono') className += ' col-justificativa';
+    // Adiciona classes de largura de coluna (usando os nomes de cabeçalho normalizados)
+    if (headerKey === 'NUMERO REFERENCIA') className += ' col-numero-referencia';
+    else if (headerKey === 'CIDADE') className += ' col-cidade';
+    else if (headerKey === 'SERVICO') className += ' col-servico';
+    else if (headerKey === 'TECNICO') className += ' col-tecnico';
+    else if (headerKey === 'JUSTIFICATIVA DO ABONO') className += ' col-justificativa';
 
     // eslint-disable-next-line no-unused-vars
     return { content, className: className.trim() };
@@ -397,7 +402,8 @@ function App() {
       },
     };
 
-    XLSX.utils.sheet_add_aoa(ws, [tableHeaders.map(h => ({ v: h, t: 's', s: headerStyle }))], { origin: "A1" });
+    // Aplica estilo ao cabeçalho (usando displayHeaders para os nomes de exibição)
+    XLSX.utils.sheet_add_aoa(ws, [displayHeaders.map(h => ({ v: h.display, t: 's', s: headerStyle }))], { origin: "A1" });
 
     dataToExport.forEach((row, rowIndex) => {
       const excelRow = [];
@@ -420,8 +426,8 @@ function App() {
         fillColor = { rgb: "FFFFFF" };
       }
 
-      tableHeaders.forEach((header, colIndex) => {
-        const { content, className } = getCellContentAndClassName(row, header);
+      displayHeaders.forEach((header, colIndex) => { // Iterar sobre displayHeaders para obter a chave e o conteúdo
+        const { content, className } = getCellContentAndClassName(row, header.key); // Passar a chave normalizada
         let cellStyle = {
           fill: fillColor,
           font: fontColor,
@@ -444,10 +450,10 @@ function App() {
       XLSX.utils.sheet_add_aoa(ws, [excelRow], { origin: -1 });
     });
 
-    const colWidths = tableHeaders.map(header => ({
+    const colWidths = displayHeaders.map(header => ({ // Usar displayHeaders para largura
       wch: Math.max(
-        header.length,
-        ...dataToExport.map(row => String(row[header] || '').length)
+        header.display.length, // Usar o nome de exibição para calcular largura
+        ...dataToExport.map(row => String(row[header.key] || '').length) // Usar a chave para acessar o dado
       ) + 2
     }));
     ws['!cols'] = colWidths;
@@ -457,14 +463,14 @@ function App() {
     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     saveAs(blob, filename);
-  }, [tableHeaders, getRowClassByDataLimite, getCellContentAndClassName]);
+  }, [displayHeaders, getRowClassByDataLimite, getCellContentAndClassName]);
 
   const handleExportPendingToExcel = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const pendingData = filteredData.filter(row => {
-      const dataLimiteStr = row['Data Limite'];
+      const dataLimiteStr = row['DATA LIMITE']; // Usar cabeçalho normalizado
       if (!dataLimiteStr) return false;
 
       const parts = dataLimiteStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
@@ -522,12 +528,12 @@ function App() {
           <table className="data-table">
             <thead>
               <tr>
-                {tableHeaders.map((header) => (
-                  <th key={header}>
+                {displayHeaders.map((header) => ( // Iterar sobre displayHeaders para exibição
+                  <th key={header.key}>
                     <div className="header-content">
-                      <span className="sortable-header" onClick={() => requestSort(header)}>
-                        {header}
-                        {sortConfig.key === header && (
+                      <span className="sortable-header" onClick={() => requestSort(header.key)}> {/* Usar header.key para ordenação */}
+                        {header.display} {/* Usar header.display para o texto visível */}
+                        {sortConfig.key === header.key && (
                           <FontAwesomeIcon
                             icon={sortConfig.direction === 'ascending' ? faSortUp : faSortDown}
                             className="sort-icon"
@@ -536,20 +542,20 @@ function App() {
                       </span>
                       <FontAwesomeIcon
                         icon={faFilter}
-                        className={`filter-icon ${activeFilters[header] && Object.values(activeFilters[header]).some(Boolean) ? 'filter-active' : ''}`}
-                        onClick={(event) => toggleFilterDropdown(header, event)}
-                        ref={el => filterIconRefs.current[header] = el}
+                        className={`filter-icon ${activeFilters[header.key] && Object.values(activeFilters[header.key]).some(Boolean) ? 'filter-active' : ''}`}
+                        onClick={(event) => toggleFilterDropdown(header.key, event)}
+                        ref={el => filterIconRefs.current[header.key] = el}
                       />
                     </div>
 
-                    {openDropdown === header && (
+                    {openDropdown === header.key && (
                       <div
                         className="filter-dropdown"
                         ref={filterDropdownRef}
                         style={{ top: filterDropdownPosition.top, left: filterDropdownPosition.left }}
                       >
                         <div className="filter-options-container">
-                          {getUniqueColumnValues(header).map(value => (
+                          {getUniqueColumnValues(header.key).map(value => ( // Usar header.key para valores
                             <label key={value} className="filter-option">
                               <input
                                 type="checkbox"
@@ -561,10 +567,10 @@ function App() {
                           ))}
                         </div>
                         <div className="filter-actions">
-                          <button onClick={() => toggleSelectAll(header, true)}>Selecionar Tudo</button>
-                          <button onClick={() => toggleSelectAll(header, false)}>Desmarcar Tudo</button>
-                          <button onClick={() => applyFilters(header)}>Aplicar</button>
-                          <button onClick={() => clearFilters(header)}>Limpar</button>
+                          <button onClick={() => toggleSelectAll(header.key, true)}>Selecionar Tudo</button>
+                          <button onClick={() => toggleSelectAll(header.key, false)}>Desmarcar Tudo</button>
+                          <button onClick={() => applyFilters(header.key)}>Aplicar</button>
+                          <button onClick={() => clearFilters(header.key)}>Limpar</button>
                         </div>
                       </div>
                     )}
@@ -575,10 +581,10 @@ function App() {
             <tbody>
               {sortedData.map((row, rowIndex) => (
                 <tr key={rowIndex} className={getRowClassByDataLimite(row)}>
-                  {tableHeaders.map((header) => {
-                    const { content, className } = getCellContentAndClassName(row, header);
+                  {displayHeaders.map((header) => { // Iterar sobre displayHeaders
+                    const { content, className } = getCellContentAndClassName(row, header.key); // Passar header.key
                     return (
-                      <td key={header} className={className}>
+                      <td key={header.key} className={className}>
                         {content}
                       </td>
                     );
