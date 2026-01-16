@@ -151,6 +151,7 @@ code {
   white-space: nowrap; /* Impede que o texto quebre linha */
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #333; /* Cor do texto padrão para todas as células */
 }
 
 .data-table th {
@@ -162,29 +163,28 @@ code {
   z-index: 10;
 }
 
+/* Ajuste para as linhas que não têm cor específica (nem atrasadas, nem vencendo hoje) */
+.data-table tbody tr {
+  background-color: #ffffff; /* Fundo branco padrão para linhas ímpares */
+}
+
 .data-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f0f0f0; /* Fundo cinza claro para linhas pares */
 }
 
 .data-table tbody tr:hover {
-  background-color: #f1f1f1;
+  background-color: #e0e0e0; /* Fundo um pouco mais escuro ao passar o mouse */
 }
 
 /* Classes para cores das linhas */
 .overdue-strong {
   background-color: #FF0000 !important; /* Vermelho forte para TODOS atrasados */
-  color: white;
+  color: white !important; /* Texto branco para contraste */
 }
-
-/* A classe .overdue-normal não será mais usada, mas pode ser mantida ou removida */
-/* .overdue-normal {
-  background-color: #FFCCCC !important;
-  color: #333;
-} */
 
 .due-today {
   background-color: #FFFF00 !important; /* Amarelo para hoje */
-  color: #333;
+  color: #333 !important; /* Texto escuro para contraste */
 }
 
 /* Classe para "FALTA ABONAR" */
@@ -294,12 +294,12 @@ code {
 }
 
 /* Larguras de colunas específicas */
-.col-numero-referencia { width: 150px; } /* Aumentado */
-.col-cnpj-cpf { width: 180px; } /* Aumentado */
-.col-cidade { width: 150px; } /* Aumentado */
-.col-servico { width: 250px; } /* Aumentado */
-.col-tecnico { width: 250px; } /* Aumentado */
-.col-justificativa { width: 300px; } /* Aumentado */
+.col-numero-referencia { width: 150px; }
+.col-cnpj-cpf { width: 180px; }
+.col-cidade { width: 150px; }
+.col-servico { width: 250px; }
+.col-tecnico { width: 250px; }
+.col-justificativa { width: 300px; }
 
 
 /* Responsividade */
