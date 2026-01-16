@@ -1,175 +1,141 @@
-/* frontend/src/App.css */
+/* Estilos Gerais */
 body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* Cor de fundo suave */
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  background-color: #f4f7f6;
+  color: #333;
 }
 
 .App {
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #4472C4; /* Azul mais escuro */
   padding: 20px;
   color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  gap: 15px;
 }
 
 .App-header h1 {
-  margin-bottom: 20px;
-  font-size: 2.5em;
-  color: #61dafb;
+  margin: 0;
+  font-size: 2.2em;
+  font-weight: 600;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
+/* Contêiner de Upload e Ações */
 .file-upload-container {
   display: flex;
+  flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
+  justify-content: center;
   align-items: center;
-  gap: 10px;
-  /* Removido background-color e padding daqui, movido para .custom-file-upload */
-  /* Removido box-shadow daqui */
+  gap: 20px; /* Espaçamento entre os itens */
+  width: 100%;
+  max-width: 1200px; /* Limita a largura para melhor layout */
 }
 
 .custom-file-upload {
-  /* CORREÇÃO AQUI: Estilos para o botão de upload */
-  display: inline-flex; /* Usar flex para alinhar ícone e texto */
-  align-items: center;
-  gap: 8px; /* Espaço entre ícone e texto */
-  background-color: #4CAF50; /* Verde */
+  background-color: #007bff; /* Azul padrão */
   color: white;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1.1em;
-  font-weight: bold;
+  font-size: 1em;
+  font-weight: 500;
   transition: background-color 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: inline-flex; /* Para alinhar ícone e texto */
+  align-items: center;
+  gap: 8px; /* Espaço entre ícone e texto */
+  min-width: 220px; /* Garante que o texto não seja cortado */
+  justify-content: center; /* Centraliza o conteúdo */
   flex-shrink: 0; /* Impede que o botão encolha */
-  min-width: 180px; /* Garante largura mínima para o texto */
-  justify-content: center; /* Centraliza conteúdo */
-  border: none; /* Garante que não haja borda padrão */
 }
 
 .custom-file-upload:hover {
-  background-color: #45a049;
-}
-
-#file-upload {
-  display: none;
+  background-color: #0056b3;
 }
 
 .file-name-display {
   font-size: 0.9em;
-  color: #e0e0e0;
-  max-width: 200px;
+  color: #f0f0f0;
+  max-width: 250px; /* Limita a largura do nome do arquivo */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap; /* Permite que os botões quebrem para a próxima linha */
+  gap: 10px;
+  justify-content: center;
+}
+
 .export-button {
-  /* CORREÇÃO AQUI: Estilos para os botões de exportação */
-  display: inline-flex; /* Usar flex para alinhar ícone e texto */
-  align-items: center;
-  gap: 8px; /* Espaço entre ícone e texto */
-  background-color: #007bff; /* Azul */
+  background-color: #28a745; /* Verde */
   color: white;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1.1em;
-  font-weight: bold;
+  font-size: 1em;
+  font-weight: 500;
   transition: background-color 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0; /* Impede que o botão encolha */
-  min-width: 180px; /* Garante largura mínima para o texto */
-  justify-content: center; /* Centraliza conteúdo */
-}
-
-.export-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.export-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.overdue-count {
-  background-color: #dc3545; /* Vermelho */
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 1.1em;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  /* CORREÇÃO AQUI: Adicionado display flex para centralizar o texto */
-  display: flex;
-  justify-content: center;
+  display: inline-flex; /* Para alinhar ícone e texto */
   align-items: center;
-  flex-shrink: 0; /* Impede que o contador encolha */
-  min-width: 180px; /* Garante largura mínima */
+  gap: 8px; /* Espaço entre ícone e texto */
+  min-width: 220px; /* Garante que o texto não seja cortado */
+  justify-content: center; /* Centraliza o conteúdo */
+  flex-shrink: 0; /* Impede que o botão encolha */
 }
 
-.overdue-count .count-number {
-  font-size: 1.2em;
-  font-weight: bolder;
+.export-button:hover {
+  background-color: #218838;
+}
+
+.overdue-count-container {
+  margin-top: 10px;
+  padding: 8px 15px;
+  background-color: #dc3545; /* Vermelho para o contador */
+  color: white;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 1.1em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .error-message {
   color: #dc3545;
-  margin-top: 20px;
   font-weight: bold;
+  margin-top: 10px;
 }
 
+/* Estilos da Tabela */
 .data-table-container {
-  overflow-x: auto; /* Permite rolagem horizontal */
-  margin: 20px;
+  overflow-x: auto; /* Adiciona scroll horizontal se a tabela for muito larga */
+  margin: 0 20px 20px 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: white;
-  flex-grow: 1; /* Permite que a tabela ocupe o espaço restante */
 }
 
 .data-table {
-  width: 100%; /* Ocupa a largura total do container */
+  width: 100%;
   border-collapse: collapse;
-  min-width: 1800px; /* Aumentado para acomodar mais conteúdo */
+  min-width: 1200px; /* Garante que a tabela não fique muito estreita */
 }
 
 .data-table th,
 .data-table td {
-  border: 1px solid #ddd;
   padding: 12px 15px;
+  border: 1px solid #e0e0e0;
   text-align: left;
-  white-space: nowrap; /* Impede que o texto quebre linha */
+  white-space: nowrap; /* Impede que o texto quebre */
   overflow: hidden;
   text-overflow: ellipsis;
   color: #333; /* Cor do texto padrão para todas as células */
