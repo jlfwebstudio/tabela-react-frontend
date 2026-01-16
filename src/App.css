@@ -43,14 +43,11 @@ code {
   align-items: center;
   gap: 10px;
   margin-bottom: 20px;
-  flex-wrap: wrap; /* Permite quebrar linha em telas menores */
-  justify-content: center;
 }
 
 .custom-file-upload {
   border: 2px solid #4472C4;
-  display: inline-flex; /* Alterado para inline-flex */
-  align-items: center; /* Alinha ícone e texto */
+  display: inline-block;
   padding: 10px 20px;
   cursor: pointer;
   border-radius: 8px;
@@ -58,11 +55,10 @@ code {
   color: white;
   font-weight: bold;
   transition: background-color 0.3s ease, border-color 0.3s ease;
-  white-space: nowrap;
+  white-space: nowrap; /* Impede que o texto quebre */
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 250px; /* Limita a largura para o ellipsis funcionar */
-  gap: 8px; /* Espaço entre ícone e texto */
 }
 
 .custom-file-upload:hover {
@@ -89,7 +85,6 @@ code {
   margin-bottom: 20px; /* Espaço abaixo dos botões */
   flex-wrap: wrap; /* Permite que os botões quebrem linha em telas menores */
   justify-content: center;
-  max-width: 100%; /* Garante que o container não exceda a largura */
 }
 
 .export-button {
@@ -102,13 +97,10 @@ code {
   font-size: 1em;
   font-weight: bold;
   transition: background-color 0.3s ease;
-  display: inline-flex; /* Alterado para inline-flex */
-  align-items: center; /* Alinha ícone e texto */
+  display: flex;
+  align-items: center;
   gap: 8px;
   white-space: nowrap;
-  flex-shrink: 0; /* Impede que o botão encolha demais */
-  min-width: 180px; /* Largura mínima para o texto */
-  justify-content: center; /* Centraliza o conteúdo */
 }
 
 .export-button:hover {
@@ -126,7 +118,6 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0; /* Impede que o contador encolha demais */
 }
 
 .loading-message, .error-message {
@@ -202,20 +193,12 @@ code {
   color: #333 !important;
 }
 
-/* Classe para "FALTA ABONAR" (linha inteira) */
+/* Classe para "FALTA ABONAR" */
 .falta-abonar {
   background-color: #800080 !important; /* Roxo */
   color: white !important; /* Texto branco */
   font-weight: bold;
 }
-
-/* Classe para a célula específica "FALTA ABONAR" (se precisar de estilo extra) */
-.falta-abonar-cell {
-  /* Pode adicionar estilos específicos para a célula se a linha já for roxa */
-  /* Por exemplo, para garantir negrito ou um tom ligeiramente diferente */
-  font-weight: bold;
-}
-
 
 /* Estilos para o cabeçalho da tabela com filtros e ordenação */
 .header-content {
@@ -316,13 +299,13 @@ code {
   background-color: #5a6268;
 }
 
-/* Larguras de colunas específicas (usando nomes normalizados) */
-.col-NUMERO-REFERENCIA { width: 150px; }
-.col-CNPJ-/-CPF { width: 180px; }
-.col-CIDADE { width: 150px; }
-.col-SERVICO { width: 250px; }
-.col-TECNICO { width: 250px; }
-.col-JUSTIFICATIVA-DO-ABONO { width: 300px; }
+/* Larguras de colunas específicas */
+.col-numero-referencia { width: 150px; } /* Aumentado */
+.col-cnpj-cpf { width: 180px; } /* Aumentado */
+.col-cidade { width: 150px; } /* Aumentado */
+.col-servico { width: 250px; } /* Aumentado */
+.col-tecnico { width: 250px; } /* Aumentado */
+.col-justificativa { width: 300px; } /* Aumentado */
 
 
 /* Responsividade */
