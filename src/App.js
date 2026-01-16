@@ -1,9 +1,9 @@
 // frontend/src/App.js
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
-import * as XLSX from 'xlsx-js-style';
+import *as XLSX from 'xlsx-js-style';
 // eslint-disable-next-line no-unused-vars
-import { saveAs } from 'file-saver'; // 'saveAs' é usado, mas o ESLint pode não detectar. Desabilitando a regra aqui.
+import { saveAs } from 'file-saver';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter, faSortUp, faSortDown, faFileExcel, faFileUpload } from '@fortawesome/free-solid-svg-icons';
 import './App.css';
@@ -38,7 +38,7 @@ function App() {
     'Justificativa do Abono',
   ], []);
 
-  // NOVO: Lista de status permitidos
+  // Lista de status permitidos
   const allowedStatuses = useMemo(() => [
     'ENCAMINHADA',
     'EM TRANSFERÊNCIA',
@@ -52,7 +52,6 @@ function App() {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
   }, []);
 
-  // Função para formatar a Data Limite para DD/MM/AAAA
   const formatDataLimite = useCallback((dateString) => {
     if (!dateString) return '';
     try {
@@ -71,7 +70,6 @@ function App() {
     return dateString;
   }, []);
 
-  // Função para formatar CNPJ/CPF
   const formatCnpjCpf = useCallback((value) => {
     if (!value) return '';
     const cleaned = String(value).replace(/\D/g, '');
@@ -84,7 +82,6 @@ function App() {
     return value;
   }, []);
 
-  // Efeito para calcular o contador de OSs em atraso
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -135,7 +132,6 @@ function App() {
   }, [data, activeFilters, allowedStatuses, normalizeForComparison, tableHeaders]);
 
 
-  // Função para lidar com o upload do arquivo CSV
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -171,7 +167,6 @@ function App() {
     }
   };
 
-  // Função para obter valores únicos para os filtros
   const getUniqueColumnValues = useCallback((header) => {
     const values = new Set();
     data.forEach(row => {
@@ -193,7 +188,6 @@ function App() {
     return sortedValues;
   }, [data, allowedStatuses, normalizeForComparison]);
 
-  // Funções para lidar com o dropdown de filtro
   const toggleFilterDropdown = useCallback((header, event) => {
     event.stopPropagation();
     if (openDropdown === header) {
@@ -205,12 +199,11 @@ function App() {
         top: iconRect.bottom + window.scrollY + 5,
         left: iconRect.left + window.scrollX,
       });
-      // Inicializa as seleções de filtro com base nos filtros ativos ou todos selecionados
-      const currentActive = activeFilters[header] || {};
+      const currentSelections = activeFilters[header] || {};
       const uniqueValues = getUniqueColumnValues(header);
       const newSelections = {};
       uniqueValues.forEach(value => {
-        newSelections[value] = currentActive[value] !== undefined ? currentActive[value] : true;
+        newSelections[value] = currentSelections[value] !== undefined ? currentSelections[value] : true;
       });
       setFilterSelections(newSelections);
     }
@@ -265,7 +258,6 @@ function App() {
     setFilterSelections(newSelections);
   }, [getUniqueColumnValues]);
 
-  // Lógica de ordenação
   const requestSort = useCallback((key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -282,7 +274,6 @@ function App() {
         const aValue = String(a[sortConfig.key] || '').trim();
         const bValue = String(b[sortConfig.key] || '').trim();
 
-        // Tratamento especial para 'Data Limite'
         if (sortConfig.key === 'Data Limite') {
           const parseDate = (dateString) => {
             const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
@@ -299,7 +290,6 @@ function App() {
           return 0;
         }
 
-        // Ordenação padrão para outros campos
         if (aValue < bValue) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         } else if (aValue > bValue) {
@@ -329,15 +319,16 @@ function App() {
     dataLimite.setHours(0, 0, 0, 0);
 
     // CORREÇÃO AQUI: Lógica para "FALTA ABONAR" na linha
-    if (dataLimite < today && (justificativaAbono === '' || normalizeForComparison(justificativaAbono) === 'FALTA ABONAR')) {
-      return 'falta-abonar'; // Esta classe será usada para a linha inteira (roxo)
+    // A linha fica roxa se estiver atrasada E a justificativa estiver vazia
+    if (dataLimite < today && justificativaAbono === '') {
+      return 'falta-abonar';
     } else if (dataLimite < today) {
-      return 'overdue-strong'; // Vermelho forte para atrasados (sem abono ou abono diferente de "FALTA ABONAR")
+      return 'overdue-strong';
     } else if (dataLimite.getTime() === today.getTime()) {
-      return 'due-today'; // Amarelo para hoje
+      return 'due-today';
     }
     return '';
-  }, [normalizeForComparison]);
+  }, []);
 
 
   // Função para obter o conteúdo e a classe da célula
@@ -350,8 +341,10 @@ function App() {
       className = 'col-cnpj-cpf';
     } else if (header === 'Data Limite') {
       content = formatDataLimite(content);
-    } else if (header === 'Status') { // Normaliza o status para exibição
-      content = normalizeForComparison(content || '');
+    } else if (header === 'Status') {
+      // Normaliza o status para exibição, garantindo que seja um dos 5 permitidos
+      const normalizedStatus = normalizeForComparison(content || '');
+      content = allowedStatuses.find(s => normalizeForComparison(s) === normalizedStatus) || content;
     }
 
     // CORREÇÃO AQUI: Lógica para "FALTA ABONAR" na célula
@@ -365,9 +358,10 @@ function App() {
       today.setHours(0, 0, 0, 0);
       if (dataLimite) dataLimite.setHours(0, 0, 0, 0);
 
-      if (dataLimite && dataLimite < today && (justificativaAbono === '' || normalizeForComparison(justificativaAbono) === 'FALTA ABONAR')) {
-        content = 'FALTA ABONAR'; // Exibe o texto "FALTA ABONAR"
-        className += ' falta-abonar-cell'; // Adiciona a classe para a célula
+      // Se a data estiver atrasada E a justificativa estiver vazia, exibe "FALTA ABONAR" e aplica a classe
+      if (dataLimite && dataLimite < today && justificativaAbono === '') {
+        content = 'FALTA ABONAR';
+        className += ' falta-abonar-cell';
       }
     }
 
@@ -380,10 +374,9 @@ function App() {
 
     // eslint-disable-next-line no-unused-vars
     return { content, className: className.trim() };
-  }, [formatCnpjCpf, formatDataLimite, normalizeForComparison]);
+  }, [formatCnpjCpf, formatDataLimite, normalizeForComparison, allowedStatuses]);
 
 
-  // Função para exportar dados para Excel
   const exportDataToExcel = useCallback((dataToExport, filename) => {
     if (dataToExport.length === 0) {
       alert('Nenhum registro para exportar.');
