@@ -151,7 +151,7 @@ function App() {
     setOpenDropdown(null);
 
     const formData = new FormData();
-    formData.append('csvFile', file);
+    formData.append('file', file);
 
     try {
       const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/upload`, formData, {
