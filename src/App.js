@@ -4,7 +4,7 @@ import axios from 'axios';
 import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilter, faSortUp, faSortDown, faFileExcel, faFileUpload, faSearch } from '@fortawesome/free-solid-svg-icons'; // Adicionado faSearch
+import { faFilter, faSortUp, faSortDown, faFileExcel, faFileUpload, faSearch } from '@fortawesome/free-solid-svg-icons';
 import './App.css';
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
   const [overdueCount, setOverdueCount] = useState(0);
   const [sortConfig, setSortConfig] = useState({ key: 'Data Limite', direction: 'ascending' });
   const [selectedFileName, setSelectedFileName] = useState('');
-  const [searchTerm, setSearchTerm] = useState(''); // NOVO ESTADO PARA O TERMO DE PESQUISA
+  const [searchTerm, setSearchTerm] = useState('');
 
   const tableHeaders = useMemo(() => [
     'Chamado',
@@ -50,20 +50,17 @@ function App() {
     if (normalized.includes('EM CAMPO')) return 'EM CAMPO';
     if (normalized.includes('REENCAMINHADO')) return 'REENCAMINHADO';
     if (normalized.includes('PROCEDIMENTO TECNICO')) return 'PROCEDIMENTO TÉCNICO';
-    return status; // Retorna o original se não houver normalização específica
+    return status;
   }, [normalizeForComparison]);
 
-  // Função para formatar a Data Limite para DD/MM/AAAA
   const formatDataLimite = useCallback((dateString) => {
     if (!dateString) return '';
     try {
-      // Tenta parsear com o formato DD/MM/YYYY HH:MM:SS ou DD/MM/YYYY
       const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}):(\d{2}))?/);
       if (parts) {
         const [, day, month, year] = parts;
         return `${day}/${month}/${year}`;
       }
-      // Fallback para Date object se o regex falhar
       const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('pt-BR');
@@ -71,26 +68,24 @@ function App() {
     } catch (e) {
       console.error("Erro ao formatar data:", dateString, e);
     }
-    return dateString; // Retorna a string original se não conseguir formatar
+    return dateString;
   }, []);
 
-  // Função para formatar CNPJ/CPF (agora o backend já remove "=""")
   const formatCnpjCpf = useCallback((value) => {
     if (!value) return '';
-    const cleaned = String(value).replace(/\D/g, ''); // Remove tudo que não é dígito
+    const cleaned = String(value).replace(/\D/g, '');
     if (cleaned.length === 11) {
-      return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'); // CPF
+      return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
     if (cleaned.length === 14) {
-      return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'); // CNPJ
+      return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
     }
-    return value; // Retorna o valor original se não for CPF nem CNPJ
+    return value;
   }, []);
 
-  // Efeito para calcular o contador de OSs em atraso (AGORA CONTA TODOS OS ATRASADOS)
   useEffect(() => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
+    today.setHours(0, 0, 0, 0);
 
     const count = filteredData.filter(row => {
       const dataLimiteStr = row['Data Limite'];
@@ -100,10 +95,8 @@ function App() {
         const parts = dataLimiteStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
         if (parts) {
           const [, day, month, year] = parts;
-          const dataLimite = new Date(`${month}/${day}/${year}`); // Formato MM/DD/YYYY para Date
+          const dataLimite = new Date(`${month}/${day}/${year}`);
           dataLimite.setHours(0, 0, 0, 0);
-
-          // CONTA TODOS OS CHAMADOS COM DATA LIMITE < DATA DE AGORA
           return dataLimite < today;
         }
       } catch (e) {
@@ -112,9 +105,8 @@ function App() {
       return false;
     }).length;
     setOverdueCount(count);
-  }, [filteredData]); // Depende de filteredData
+  }, [filteredData]);
 
-  // Efeito para fechar o dropdown de filtro ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) &&
@@ -128,85 +120,19 @@ function App() {
     };
   }, []);
 
-  // Função para lidar com o upload do arquivo CSV
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    setSelectedFileName(file.name);
-    setLoading(true);
-    setError(null);
-    setData([]);
-    setFilteredData([]);
-    setOverdueCount(0);
-    setActiveFilters({});
-    setFilterSelections({});
-    setOpenDropdown(null);
-    setSearchTerm(''); // Limpa o termo de pesquisa ao carregar novo arquivo
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
-      const response = await axios.post(`${backendUrl}/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      const rawData = response.data;
-
-      // Filtra os dados para incluir apenas os status permitidos
-      // NOTE: allowedStatuses foi removido, então esta filtragem não é mais aplicada aqui.
-      // Se você ainda precisa filtrar por status permitidos, a lista 'allowedStatuses'
-      // e a lógica de filtragem precisarão ser reintroduzidas.
-      const processedData = rawData; // Removida a filtragem por allowedStatuses aqui.
-
-      setData(processedData);
-      setFilteredData(processedData); // Inicialmente, filteredData é igual a data
-    } catch (err) {
-      console.error('Erro ao fazer upload do arquivo:', err);
-      setError('Erro ao carregar o arquivo. Verifique o formato ou tente novamente.');
-      setData([]);
-      setFilteredData([]);
-    } finally {
-      setLoading(false);
-      event.target.value = null; // Limpa o input para permitir upload do mesmo arquivo novamente
-    }
-  };
-
-  // Função para obter valores únicos de uma coluna para o filtro
-  const getUniqueColumnValues = useCallback((columnName) => {
+  const getUniqueColumnValues = useCallback((header) => {
     const values = new Set();
     data.forEach(row => {
-      const value = row[columnName];
-      values.add(value === undefined || value === null || value === '' ? '' : String(value).trim());
+      const value = row[header] !== undefined && row[header] !== null ? String(row[header]).trim() : '';
+      values.add(value);
     });
-    const sortedValues = Array.from(values).sort((a, b) => {
-      if (a === '') return -1; // Vazio primeiro
-      if (b === '') return 1;
-      return String(a).localeCompare(String(b));
+    return Array.from(values).sort((a, b) => {
+      if (a === '') return 1;
+      if (b === '') return -1;
+      return a.localeCompare(b);
     });
-    return sortedValues;
   }, [data]);
 
-  // Função para alternar o dropdown de filtro
-  const toggleFilterDropdown = useCallback((header, event) => {
-    event.stopPropagation(); // Impede que o clique se propague e feche o dropdown imediatamente
-    if (openDropdown === header) {
-      setOpenDropdown(null);
-    } else {
-      setOpenDropdown(header);
-      // Calcula a posição do dropdown
-      const iconRect = event.currentTarget.getBoundingClientRect();
-      setFilterDropdownPosition({
-        top: iconRect.bottom + window.scrollY + 5, // 5px abaixo do ícone
-        left: iconRect.left + window.scrollX,
-      });
-    }
-  }, [openDropdown]);
-
-  // Função para lidar com a seleção de filtros
   const handleFilterSelectionChange = useCallback((value) => {
     setFilterSelections(prev => ({
       ...prev,
@@ -214,104 +140,127 @@ function App() {
     }));
   }, []);
 
-  // Função para aplicar os filtros
   const applyFilters = useCallback((header) => {
-    const newActiveFilters = { ...activeFilters };
-    newActiveFilters[header] = { ...filterSelections };
-    setActiveFilters(newActiveFilters);
+    setActiveFilters(prev => ({
+      ...prev,
+      [header]: filterSelections
+    }));
     setOpenDropdown(null);
-  }, [activeFilters, filterSelections]);
+  }, [filterSelections]);
 
-  // Função para limpar os filtros de uma coluna
   const clearFilters = useCallback((header) => {
-    const newActiveFilters = { ...activeFilters };
-    delete newActiveFilters[header];
-    setActiveFilters(newActiveFilters);
-    setFilterSelections({}); // Limpa as seleções do dropdown
+    setActiveFilters(prev => {
+      const newActiveFilters = { ...prev };
+      delete newActiveFilters[header];
+      return newActiveFilters;
+    });
+    setFilterSelections({});
     setOpenDropdown(null);
-  }, [activeFilters]);
+  }, []);
 
-  // Função para selecionar/desmarcar todos os filtros
-  const toggleSelectAll = useCallback((header, selectAll) => {
+  const toggleSelectAll = useCallback((header, select) => {
     const uniqueValues = getUniqueColumnValues(header);
     const newSelections = {};
     uniqueValues.forEach(value => {
-      newSelections[value] = selectAll;
+      newSelections[value] = select;
     });
     setFilterSelections(newSelections);
   }, [getUniqueColumnValues]);
 
-  // Efeito para aplicar os filtros ativos e pesquisa global
-  useEffect(() => {
-    let currentFilteredData = [...data];
+  const toggleFilterDropdown = useCallback((header, event) => {
+    event.stopPropagation();
+    if (openDropdown === header) {
+      setOpenDropdown(null);
+    } else {
+      setOpenDropdown(header);
+      const iconRect = filterIconRefs.current[header].getBoundingClientRect();
+      setFilterDropdownPosition({
+        top: iconRect.bottom + window.scrollY + 5,
+        left: iconRect.left + window.scrollX
+      });
+      const currentSelections = activeFilters[header] || {};
+      setFilterSelections(currentSelections);
+    }
+  }, [openDropdown, activeFilters]);
 
-    // 1. Aplicar filtros de coluna
-    Object.keys(activeFilters).forEach(header => {
-      const selectedValues = Object.keys(activeFilters[header]).filter(Boolean);
-      if (selectedValues.length > 0) {
-        currentFilteredData = currentFilteredData.filter(row => {
-          const rowValue = row[header] === undefined || row[header] === null || row[header] === '' ? '' : String(row[header]).trim();
-          return selectedValues.includes(rowValue);
-        });
-      }
+  // Efeito para aplicar filtros de coluna e pesquisa global
+  useEffect(() => {
+    let currentFilteredData = data;
+
+    // Aplica filtros de coluna
+    currentFilteredData = currentFilteredData.filter(row => {
+      return tableHeaders.every(header => {
+        const activeHeaderFilters = activeFilters[header];
+        if (!activeHeaderFilters || Object.keys(activeHeaderFilters).length === 0 || !Object.values(activeHeaderFilters).some(Boolean)) {
+          return true; // Nenhum filtro ativo para esta coluna
+        }
+        const cellValue = row[header] !== undefined && row[header] !== null ? String(row[header]).trim() : '';
+        return activeHeaderFilters[cellValue];
+      });
     });
 
-    // 2. Aplicar pesquisa global (searchTerm)
+    // Aplica pesquisa global
     if (searchTerm) {
       const normalizedSearchTerm = normalizeForComparison(searchTerm);
       currentFilteredData = currentFilteredData.filter(row =>
         tableHeaders.some(header => {
-          let cellValue = row[header];
-          // Normaliza valores de célula para pesquisa
-          if (header === 'Status') {
-            cellValue = normalizeStatusValue(cellValue);
-          } else if (header === 'Data Limite') {
-            cellValue = formatDataLimite(cellValue);
-          } else if (header === 'CNPJ / CPF') {
-            cellValue = formatCnpjCpf(cellValue);
-          }
-          return normalizeForComparison(String(cellValue)).includes(normalizedSearchTerm);
+          const cellValue = row[header] !== undefined && row[header] !== null ? String(row[header]) : '';
+          return normalizeForComparison(cellValue).includes(normalizedSearchTerm);
         })
       );
     }
 
-    // 3. Aplicar ordenação
-    if (sortConfig.key) {
-      currentFilteredData.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+    setFilteredData(currentFilteredData);
+  }, [data, activeFilters, searchTerm, tableHeaders, normalizeForComparison]);
 
-        // Tratamento especial para Data Limite
-        if (sortConfig.key === 'Data Limite') {
-          const parseDate = (dateString) => {
-            if (!dateString) return new Date(0); // Retorna uma data muito antiga para valores vazios
-            const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}):(\d{2}))?/);
-            if (parts) {
-              const [, day, month, year, hour = '00', minute = '00', second = '00'] = parts;
-              return new Date(`${month}/${day}/${year} ${hour}:${minute}:${second}`);
-            }
-            return new Date(dateString); // Fallback
-          };
-          const dateA = parseDate(formatDataLimite(aValue));
-          const dateB = parseDate(formatDataLimite(bValue));
-          return sortConfig.direction === 'ascending' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-        }
-
-        // Lógica de ordenação padrão para outros tipos
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue, 'pt-BR', { numeric: true }) : bValue.localeCompare(aValue, 'pt-BR', { numeric: true });
-        }
-        if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
-        return 0;
-      });
+  // Lógica de ordenação (agora como um useMemo para sortedData)
+  const sortedData = useMemo(() => {
+    if (!sortConfig.key || filteredData.length === 0) {
+      return filteredData;
     }
 
-    setFilteredData(currentFilteredData);
-  }, [data, activeFilters, sortConfig, searchTerm, normalizeForComparison, normalizeStatusValue, formatDataLimite, formatCnpjCpf, tableHeaders]);
+    const sortableItems = [...filteredData];
+    sortableItems.sort((a, b) => {
+      const aValue = a[sortConfig.key];
+      const bValue = b[sortConfig.key];
 
+      // Lógica de ordenação para Data Limite
+      if (sortConfig.key === 'Data Limite') {
+        const parseDate = (dateString) => {
+          const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+          if (parts) {
+            const [, day, month, year] = parts;
+            return new Date(`${month}/${day}/${year}`);
+          }
+          return new Date(0); // Retorna uma data inválida para valores não parseáveis
+        };
+        const dateA = parseDate(aValue);
+        const dateB = parseDate(bValue);
 
-  // Função para solicitar ordenação
+        if (dateA < dateB) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (dateA > dateB) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      }
+
+      // Lógica de ordenação padrão para outros tipos (string, number)
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'ascending' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      }
+      if (aValue < bValue) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
+    });
+    return sortableItems;
+  }, [filteredData, sortConfig]); // Depende de filteredData e sortConfig
+
   const requestSort = useCallback((key) => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -320,166 +269,155 @@ function App() {
     setSortConfig({ key, direction });
   }, [sortConfig]);
 
-  // Função para determinar a classe da linha com base na Data Limite
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setSelectedFileName(file.name);
+    setLoading(true);
+    setError(null);
+    setData([]); // Limpa dados anteriores
+    setFilteredData([]); // Limpa dados filtrados anteriores
+    setActiveFilters({}); // Limpa filtros ativos
+    setFilterSelections({}); // Limpa seleções de filtro
+    setSearchTerm(''); // Limpa termo de pesquisa
+
+    const formData = new FormData();
+    formData.append('file', file); // Nome do campo deve ser 'file' para Multer
+
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 120000, // Aumenta o timeout para 120 segundos (2 minutos)
+      });
+      setData(response.data);
+      // O useEffect de filtragem será acionado automaticamente com os novos dados
+    } catch (err) {
+      console.error('Erro no upload:', err);
+      if (err.response) {
+        setError(`Erro ao carregar o arquivo: ${err.response.data.error || err.response.statusText}.`);
+      } else if (err.request) {
+        setError('Erro de rede ou o servidor não respondeu. Tente novamente.');
+      } else {
+        setError('Erro ao processar o arquivo. Verifique o formato ou tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getRowClassByDataLimite = useCallback((row) => {
     const dataLimiteStr = row['Data Limite'];
-    if (!dataLimiteStr) return '';
+    const justificativa = row['Justificativa do Abono'];
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    if (!dataLimiteStr) return '';
 
     try {
       const parts = dataLimiteStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-      if (parts) {
-        const [, day, month, year] = parts;
-        const dataLimite = new Date(`${month}/${day}/${year}`);
-        dataLimite.setHours(0, 0, 0, 0);
+      if (!parts) return '';
 
-        if (dataLimite < today) {
-          return 'overdue-strong'; // Vermelho forte para atrasados
-        } else if (dataLimite.getTime() === today.getTime()) {
-          return 'due-today'; // Amarelo para hoje
-        }
-      }
-    } catch (e) {
-      console.error("Erro ao determinar classe da linha:", dataLimiteStr, e);
-    }
-    return ''; // Nenhuma classe se não for atrasado nem para hoje
-  }, []);
-
-  // Função para determinar o conteúdo e a classe de uma célula
-  const getCellContentAndClassName = useCallback((row, header) => {
-    let content = row[header];
-    let className = '';
-
-    if (header === 'Data Limite') {
-      content = formatDataLimite(content);
-    } else if (header === 'CNPJ / CPF') {
-      content = formatCnpjCpf(content);
-    }
-
-    // Lógica para "FALTA ABONAR"
-    if (header === 'Justificativa do Abono') {
-      const dataLimiteStr = row['Data Limite'];
-      const justificativa = row['Justificativa do Abono'];
+      const [, day, month, year] = parts;
+      const dataLimite = new Date(`${month}/${day}/${year}`);
+      dataLimite.setHours(0, 0, 0, 0);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      try {
-        const parts = dataLimiteStr.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-        if (parts) {
-          const [, day, month, year] = parts;
-          const dataLimite = new Date(`${month}/${day}/${year}`);
-          dataLimite.setHours(0, 0, 0, 0);
-
-          if (dataLimite < today && (!justificativa || String(justificativa).trim() === '')) {
-            content = 'FALTA ABONAR';
-            className = 'falta-abonar';
-          }
-        }
-      } catch (e) {
-        console.error("Erro ao verificar justificativa para 'FALTA ABONAR':", dataLimiteStr, e);
+      if (dataLimite < today) {
+        // Todas as linhas atrasadas são vermelho forte
+        return 'overdue-strong';
+      } else if (dataLimite.getTime() === today.getTime()) {
+        return 'due-today';
       }
+    } catch (e) {
+      console.error("Erro ao determinar classe da linha:", dataLimiteStr, e);
+    }
+    return '';
+  }, []);
+
+  const getCellContentAndClassName = useCallback((row, header) => {
+    let content = row[header];
+    let className = '';
+
+    // Formatação específica para CNPJ / CPF
+    if (header === 'CNPJ / CPF') {
+      content = formatCnpjCpf(content);
+    }
+    // Formatação específica para Data Limite
+    else if (header === 'Data Limite') {
+      content = formatDataLimite(content);
+    }
+
+    // Aplica classe para "FALTA ABONAR"
+    if (header === 'Justificativa do Abono' && normalizeForComparison(content) === 'FALTA ABONAR') {
+      className = 'falta-abonar';
     }
 
     return { content, className };
-  }, [formatDataLimite, formatCnpjCpf]);
+  }, [formatCnpjCpf, formatDataLimite, normalizeForComparison]);
 
-
-  // Função genérica para exportar dados para Excel
   const exportDataToExcel = useCallback((dataToExport, filename) => {
     if (dataToExport.length === 0) {
-      alert('Nenhum dado para exportar.');
+      alert('Nenhum registro para exportar.');
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const ws = XLSX.utils.aoa_to_sheet([]); // Cria uma planilha vazia
 
-    // Ajustar largura das colunas
-    const wscols = tableHeaders.map(header => ({
-      wch: Math.max(
-        header.length,
-        ...dataToExport.map(row => String(row[header] || '').length)
-      ) + 2 // +2 para um pequeno padding
-    }));
-    ws['!cols'] = wscols;
+    // Adiciona cabeçalhos com estilo
+    const headerRow = tableHeaders.map(h => ({ v: h, t: 's', s: { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "4472C4" } } } }));
+    XLSX.utils.sheet_add_aoa(ws, [headerRow], { origin: "A1" });
 
-    // Aplicar estilos de cabeçalho
-    tableHeaders.forEach((header, colIndex) => {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-      if (ws[cellRef]) {
-        ws[cellRef].s = {
-          fill: { fgColor: { rgb: "4472C4" } }, // Azul escuro
-          font: { color: { rgb: "FFFFFF" }, bold: true },
-          alignment: { horizontal: "center", vertical: "center" },
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } }
-          }
-        };
-      }
-    });
+    // Adiciona dados e aplica estilos de linha e célula
+    XLSX.utils.sheet_add_json(ws, dataToExport, { origin: "A2", skipHeader: true });
 
-    // Aplicar estilos de linha e célula
+    // Aplica estilos de linha e célula (cores)
     dataToExport.forEach((row, rowIndex) => {
+      const excelRowIndex = rowIndex + 2; // +1 para cabeçalho, +1 para 0-index
       const rowClass = getRowClassByDataLimite(row);
       let fillColor = null;
-      let textColor = "000000"; // Preto padrão
+      let fontColor = null;
 
       if (rowClass === 'overdue-strong') {
         fillColor = "FF0000"; // Vermelho forte
-        textColor = "FFFFFF"; // Branco
+        fontColor = "FFFFFF"; // Branco
       } else if (rowClass === 'due-today') {
         fillColor = "FFFF00"; // Amarelo
-        textColor = "000000"; // Preto
-      } else {
-        // Cores zebradas para linhas normais
-        fillColor = (rowIndex % 2 === 0) ? "FFFFFF" : "F0F0F0"; // Branco ou cinza claro
+        fontColor = "000000"; // Preto
+      } else if (rowIndex % 2 === 0) { // Linhas pares (fundo cinza claro)
+        fillColor = "F0F0F0";
+        fontColor = "000000";
+      } else { // Linhas ímpares (fundo branco)
+        fillColor = "FFFFFF";
+        fontColor = "000000";
       }
 
       tableHeaders.forEach((header, colIndex) => {
-        const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex }); // +1 para pular o cabeçalho
-        if (ws[cellRef]) {
-          // Estilo de preenchimento da linha
-          ws[cellRef].s = {
-            ...ws[cellRef].s, // Mantém estilos existentes (como formato de número)
-            fill: { fgColor: { rgb: fillColor } },
-            font: { color: { rgb: textColor } },
-            border: {
-              top: { style: "thin", color: { rgb: "000000" } },
-              bottom: { style: "thin", color: { rgb: "000000" } },
-              left: { style: "thin", color: { rgb: "000000" } },
-              right: { style: "thin", color: { rgb: "000000" } }
-            }
-          };
+        const cellRef = XLSX.utils.encode_cell({ r: excelRowIndex - 1, c: colIndex });
+        if (!ws[cellRef]) ws[cellRef] = { t: 's', v: '' }; // Garante que a célula exista
 
-          // Sobrescrever para "FALTA ABONAR" se aplicável
-          if (header === 'Justificativa do Abono') {
-            const { content, className } = getCellContentAndClassName(row, header);
-            if (className === 'falta-abonar') {
-              ws[cellRef].v = content; // Garante que o texto "FALTA ABONAR" esteja lá
-              ws[cellRef].s = {
-                ...ws[cellRef].s,
-                fill: { fgColor: { rgb: "800080" } }, // Roxo
-                font: { color: { rgb: "FFFFFF" }, bold: true }
-              };
-            }
-          }
+        const { content, className } = getCellContentAndClassName(row, header);
+
+        // Aplica estilo de preenchimento da linha
+        if (!ws[cellRef].s) ws[cellRef].s = {};
+        ws[cellRef].s.fill = { fgColor: { rgb: fillColor } };
+        ws[cellRef].s.font = { color: { rgb: fontColor } };
+
+        // Sobrescreve estilo da célula "FALTA ABONAR" se aplicável
+        if (className === 'falta-abonar') {
+          ws[cellRef].s.fill = { fgColor: { rgb: "800080" } }; // Roxo
+          ws[cellRef].s.font = { bold: true, color: { rgb: "FFFFFF" } }; // Branco e negrito
         }
       });
     });
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Dados");
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    saveAs(new Blob([wbout], { type: 'application/octet-stream' }), filename);
+    XLSX.writeFile(wb, filename);
   }, [tableHeaders, getRowClassByDataLimite, getCellContentAndClassName]);
 
-
-  // Função para exportar apenas pendências do dia
   const handleExportPendingToExcel = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -494,8 +432,6 @@ function App() {
           const [, day, month, year] = parts;
           const dataLimite = new Date(`${month}/${day}/${year}`);
           dataLimite.setHours(0, 0, 0, 0);
-
-          // Inclui se a data limite é menor ou igual à data de hoje
           return dataLimite <= today;
         }
       } catch (e) {
@@ -505,7 +441,7 @@ function App() {
     });
 
     if (pendingData.length === 0) {
-      alert('Nenhum registro encontrado que atenda ao critério de “pendências do dia” (itens com data de limite vencida ou com vencimento para a data atual).');
+      alert('Nenhum registro de pendência do dia encontrado para exportar.');
       return;
     }
 
@@ -517,7 +453,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Dashboard de Ordens de Serviço</h1>
-        <div className="action-buttons">
+        <div className="file-upload-container">
           <label htmlFor="file-upload" className="custom-file-upload">
             <FontAwesomeIcon icon={faFileUpload} /> {selectedFileName ? selectedFileName : 'Carregar CSV'}
           </label>
