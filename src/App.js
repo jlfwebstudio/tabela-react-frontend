@@ -347,12 +347,15 @@ function App() {
 
         const justificativa = String(row['Justificativa do Abono']).trim();
 
+        // Verifica se a OS está atrasada
         if (dataLimite < today) {
-          // Se Data Limite < hoje
+          // Se a justificativa está vazia, a célula será "FALTA ABONAR"
+          // Neste caso, queremos o vermelho normal para o restante da linha
           if (justificativa === '') {
-            return 'overdue-strong'; // Vermelho forte se não abonado
+            return 'overdue-normal'; // Vermelho mais claro para a linha
           }
-          return 'overdue-normal'; // Vermelho normal se abonado
+          // Se tem justificativa (não é "FALTA ABONAR"), também queremos o vermelho normal
+          return 'overdue-normal'; // Vermelho mais claro para a linha
         } else if (dataLimite.getTime() === today.getTime()) {
           return 'due-today'; // Amarelo se for hoje
         }
