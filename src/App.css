@@ -6,7 +6,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* Cor de fundo suave */
+  background-color: #f4f7f6; /* Fundo mais suave */
+  color: #333;
 }
 
 code {
@@ -15,7 +16,6 @@ code {
 }
 
 .App {
-  text-align: center;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -25,61 +25,60 @@ code {
   background-color: #282c34;
   padding: 20px;
   color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  position: relative; /* Necessário para posicionar o contador */
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .App-header h1 {
+  margin: 0;
+  font-size: 2.5em;
+}
+
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
-  font-size: 2.2em;
+  gap: 20px; /* Espaçamento entre os grupos de botões */
 }
 
 .file-upload-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap; /* Permite quebrar linha em telas menores */
+  gap: 15px;
+  flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
   justify-content: center;
 }
 
 .custom-file-upload {
-  border: 2px solid #4472C4;
-  display: inline-flex; /* Alterado para inline-flex */
-  align-items: center; /* Alinha ícone e texto */
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 8px;
-  background-color: #4472C4;
-  color: white;
-  font-weight: bold;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 250px; /* Limita a largura para o ellipsis funcionar */
+  display: inline-flex; /* Usar flex para alinhar ícone e texto */
+  align-items: center;
   gap: 8px; /* Espaço entre ícone e texto */
+  background-color: #4CAF50; /* Verde */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0; /* Impede que o botão encolha */
   min-width: 180px; /* Garante largura mínima para o texto */
-  justify-content: center; /* Centraliza o conteúdo */
+  justify-content: center; /* Centraliza conteúdo */
 }
 
 .custom-file-upload:hover {
-  background-color: #335a9b;
-  border-color: #335a9b;
-}
-
-#file-upload {
-  display: none;
+  background-color: #45a049;
 }
 
 .file-name-display {
-  color: #bbb;
-  font-size: 0.9em;
-  max-width: 200px;
+  font-style: italic;
+  color: #555;
+  max-width: 250px; /* Limita a largura para evitar que o nome do arquivo seja muito longo */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -88,64 +87,62 @@ code {
 .action-buttons {
   display: flex;
   gap: 15px;
-  margin-bottom: 20px; /* Espaço abaixo dos botões */
-  flex-wrap: wrap; /* Permite que os botões quebrem linha em telas menores */
+  flex-wrap: wrap;
   justify-content: center;
-  max-width: 100%; /* Garante que o container não exceda a largura */
 }
 
 .export-button {
-  background-color: #4472C4;
+  display: inline-flex; /* Usar flex para alinhar ícone e texto */
+  align-items: center;
+  gap: 8px; /* Espaço entre ícone e texto */
+  background-color: #007bff; /* Azul */
   color: white;
-  border: none;
   padding: 10px 20px;
+  border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1em;
+  font-size: 1.1em;
   font-weight: bold;
   transition: background-color 0.3s ease;
-  display: inline-flex; /* Alterado para inline-flex */
-  align-items: center; /* Alinha ícone e texto */
-  gap: 8px;
-  white-space: nowrap;
-  flex-shrink: 0; /* Impede que o botão encolha demais */
-  min-width: 180px; /* Largura mínima para o texto */
-  justify-content: center; /* Centraliza o conteúdo */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0; /* Impede que o botão encolha */
+  min-width: 180px; /* Garante largura mínima para o texto */
+  justify-content: center; /* Centraliza conteúdo */
 }
 
-.export-button:hover {
-  background-color: #335a9b;
+.export-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.export-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .overdue-count {
-  background-color: #FF0000; /* Vermelho forte */
+  background-color: #dc3545; /* Vermelho */
   color: white;
-  padding: 10px 15px;
+  padding: 10px 20px;
   border-radius: 8px;
+  font-size: 1.1em;
   font-weight: bold;
-  font-size: 1em;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0; /* Impede que o contador encolha demais */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0; /* Impede que o contador encolha */
+  min-width: 180px; /* Garante largura mínima */
+  display: flex; /* Para centralizar o texto */
+  justify-content: center; /* Centraliza o texto */
+  align-items: center; /* Centraliza verticalmente */
 }
 
-.loading-message, .error-message {
-  margin: 20px;
-  padding: 15px;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.loading-message {
-  background-color: #e0f7fa;
-  color: #00796b;
+.overdue-count .count-number {
+  font-size: 1.2em;
+  font-weight: bolder;
 }
 
 .error-message {
-  background-color: #ffebee;
-  color: #d32f2f;
+  color: #dc3545;
+  margin-top: 20px;
+  font-weight: bold;
 }
 
 .data-table-container {
@@ -153,36 +150,39 @@ code {
   margin: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff; /* Fundo branco para o container da tabela */
+  background-color: white;
+  flex-grow: 1; /* Permite que a tabela ocupe o espaço restante */
 }
 
 .data-table {
-  width: 100%;
+  width: 100%; /* Ocupa a largura total do container */
   border-collapse: collapse;
-  min-width: 1200px; /* Garante que a tabela tenha uma largura mínima para o scroll */
+  min-width: 1800px; /* Aumentado para acomodar mais conteúdo */
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
   border: 1px solid #ddd;
   padding: 12px 15px;
   text-align: left;
-  white-space: nowrap; /* Impede que o texto quebre dentro da célula */
+  white-space: nowrap; /* Impede que o texto quebre linha */
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #333; /* Cor do texto padrão */
+  color: #333; /* Cor do texto padrão para todas as células */
 }
 
 .data-table th {
-  background-color: #4472C4; /* Azul escuro */
-  color: white;
+  background-color: #f2f2f2;
   font-weight: bold;
-  position: sticky; /* Fixa o cabeçalho na rolagem */
+  color: #333;
+  position: sticky;
   top: 0;
-  z-index: 1; /* Garante que o cabeçalho fique acima do conteúdo */
+  z-index: 10;
 }
 
+/* Ajuste para as linhas que não têm cor específica (nem atrasadas, nem vencendo hoje) */
 .data-table tbody tr {
-  background-color: #ffffff; /* Fundo branco para linhas ímpares */
+  background-color: #ffffff; /* Fundo branco padrão para linhas ímpares */
 }
 
 .data-table tbody tr:nth-child(even) {
@@ -190,34 +190,26 @@ code {
 }
 
 .data-table tbody tr:hover {
-  background-color: #e0e0e0; /* Fundo mais escuro ao passar o mouse */
+  background-color: #e0e0e0; /* Fundo um pouco mais escuro ao passar o mouse */
 }
 
 /* Classes para cores das linhas */
 .overdue-strong {
   background-color: #FF0000 !important; /* Vermelho forte para TODOS atrasados */
-  color: white !important;
+  color: white !important; /* Texto branco para contraste */
 }
 
 .due-today {
   background-color: #FFFF00 !important; /* Amarelo para hoje */
-  color: #333 !important;
+  color: #333 !important; /* Texto escuro para contraste */
 }
 
-/* Classe para "FALTA ABONAR" (linha inteira) */
+/* Classe para "FALTA ABONAR" */
 .falta-abonar {
   background-color: #800080 !important; /* Roxo */
   color: white !important; /* Texto branco */
   font-weight: bold;
 }
-
-/* Classe para a célula específica "FALTA ABONAR" (se precisar de estilo extra) */
-.falta-abonar-cell {
-  /* Pode adicionar estilos específicos para a célula se a linha já for roxa */
-  /* Por exemplo, para garantir negrito ou um tom ligeiramente diferente */
-  font-weight: bold;
-}
-
 
 /* Estilos para o cabeçalho da tabela com filtros e ordenação */
 .header-content {
@@ -318,14 +310,19 @@ code {
   background-color: #5a6268;
 }
 
-/* Larguras de colunas específicas (usando nomes normalizados) */
-/* Escapando o '/' em 'CNPJ / CPF' com '\' para evitar erro de CSS */
-.col-NUMERO-REFERENCIA { width: 150px; }
-.col-CNPJ-\/\-CPF { width: 180px; } /* CORREÇÃO AQUI: Escapado o '/' */
-.col-CIDADE { width: 150px; }
-.col-SERVICO { width: 250px; }
-.col-TECNICO { width: 250px; }
-.col-JUSTIFICATIVA-DO-ABONO { width: 300px; }
+/* Larguras de colunas específicas */
+/* As classes CSS para colunas devem usar nomes normalizados (sem acentos, sem espaços, em minúsculas)
+   para evitar problemas de sintaxe no CSS e corresponder ao que o JS pode gerar.
+   No entanto, como o frontend espera nomes com acento, vamos manter as classes como estão no CSS original
+   e garantir que o JS as referencie corretamente ou que o CSS seja mais genérico.
+   Para este App.css, vou manter as classes como estavam no seu "perfeito" e o JS vai acessá-las.
+*/
+.col-numero-referencia { width: 150px; }
+.col-cnpj-cpf { width: 180px; }
+.col-cidade { width: 150px; }
+.col-servico { width: 250px; }
+.col-tecnico { width: 250px; }
+.col-justificativa { width: 300px; }
 
 
 /* Responsividade */
