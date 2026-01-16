@@ -140,7 +140,7 @@ code {
 .data-table {
   width: 100%; /* Ocupa a largura total do container */
   border-collapse: collapse;
-  min-width: 1500px; /* Largura mínima para garantir que todas as colunas caibam */
+  min-width: 1800px; /* Aumentado para acomodar mais conteúdo */
 }
 
 .data-table th,
@@ -293,12 +293,12 @@ code {
 }
 
 /* Larguras de colunas específicas */
-.col-numero-referencia { width: 100px; }
-.col-cnpj-cpf { width: 150px; }
-.col-cidade { width: 120px; }
-.col-servico { width: 180px; }
-.col-tecnico { width: 180px; }
-.col-justificativa { width: 250px; }
+.col-numero-referencia { width: 150px; } /* Aumentado */
+.col-cnpj-cpf { width: 180px; } /* Aumentado */
+.col-cidade { width: 150px; } /* Aumentado */
+.col-servico { width: 250px; } /* Aumentado */
+.col-tecnico { width: 250px; } /* Aumentado */
+.col-justificativa { width: 300px; } /* Aumentado */
 
 
 /* Responsividade */
