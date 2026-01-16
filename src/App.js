@@ -252,6 +252,8 @@ function App() {
       if (err.response && err.response.data && err.response.data.message) {
         setError(`Erro: ${err.response.data.message}`);
       }
+
+      // Temporarily added for Git sync
     } finally {
       setLoading(false);
     }

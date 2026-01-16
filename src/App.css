@@ -391,6 +391,7 @@ body {
     justify-content: center;
     text-align: center;
   }
+  
   .file-name-display {
     max-width: 100%;
     text-align: center;
@@ -406,4 +407,5 @@ body {
     max-width: 90vw; /* Limita a largura do dropdown à largura da viewport */
     max-height: 200px; /* Reduz a altura máxima do dropdown */
   }
+  /* Temporarily added for Git sync */
 }
