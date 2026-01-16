@@ -94,7 +94,7 @@ function App() {
     return value; // Retorna o valor original se não for CPF nem CNPJ
   }, []);
 
-  // Efeito para calcular o contador de OSs em atraso
+  // Efeito para calcular o contador de OSs em atraso (AGORA CONTA TODOS OS ATRASADOS)
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Zera a hora para comparar apenas a data
@@ -110,10 +110,8 @@ function App() {
           const dataLimite = new Date(`${month}/${day}/${year}`); // Formato MM/DD/YYYY para Date
           dataLimite.setHours(0, 0, 0, 0);
 
-          const justificativa = String(row['Justificativa do Abono']).trim();
-
-          // Atrasado se Data Limite < hoje E Justificativa do Abono está vazia
-          return dataLimite < today && justificativa === '';
+          // CONTA TODOS OS CHAMADOS COM DATA LIMITE < DATA DE AGORA
+          return dataLimite < today;
         }
       } catch (e) {
         console.error("Erro ao comparar data limite para contador:", dataLimiteStr, e);
@@ -330,7 +328,7 @@ function App() {
     setSortConfig({ key, direction });
   }, [sortConfig]);
 
-  // Função para determinar a classe CSS da linha com base na Data Limite
+  // Função para determinar a classe CSS da linha com base na Data Limite (AGORA SEMPRE VERMELHO FORTE PARA ATRASADOS)
   const getRowClassByDataLimite = useCallback((row) => {
     const dataLimiteStr = row['Data Limite'];
     if (!dataLimiteStr) return '';
@@ -345,14 +343,8 @@ function App() {
         const dataLimite = new Date(`${month}/${day}/${year}`);
         dataLimite.setHours(0, 0, 0, 0);
 
-        const justificativa = String(row['Justificativa do Abono']).trim();
-
         if (dataLimite < today) {
-          // Se Data Limite < hoje
-          if (justificativa === '') {
-            return 'overdue-strong'; // Vermelho forte se não abonado
-          }
-          return 'overdue-normal'; // Vermelho normal se abonado
+          return 'overdue-strong'; // SEMPRE VERMELHO FORTE para atrasados
         } else if (dataLimite.getTime() === today.getTime()) {
           return 'due-today'; // Amarelo se for hoje
         }
@@ -457,12 +449,9 @@ function App() {
         let fontWeight = null;
 
         const rowClass = getRowClassByDataLimite(row); // Obtém a classe da linha para aplicar a cor de fundo
-        if (rowClass === 'overdue-strong') {
+        if (rowClass === 'overdue-strong') { // Agora só teremos overdue-strong para atrasados
           bgColor = 'FF0000'; // Vermelho forte
           textColor = 'FFFFFF'; // Branco
-        } else if (rowClass === 'overdue-normal') {
-          bgColor = 'FFCCCC'; // Vermelho mais claro
-          textColor = '000000'; // Preto
         } else if (rowClass === 'due-today') {
           bgColor = 'FFFF00'; // Amarelo
           textColor = '000000'; // Preto
@@ -593,7 +582,7 @@ function App() {
           )}
           {overdueCount > 0 && (
             <div className="overdue-count">
-              OSs em Atraso (Não Abonadas): {overdueCount}
+              OSs em Atraso: {overdueCount}
             </div>
           )}
         </div>

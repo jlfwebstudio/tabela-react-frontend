@@ -172,14 +172,15 @@ code {
 
 /* Classes para cores das linhas */
 .overdue-strong {
-  background-color: #FF0000 !important; /* Vermelho forte para atrasado */
+  background-color: #FF0000 !important; /* Vermelho forte para TODOS atrasados */
   color: white;
 }
 
-.overdue-normal {
-  background-color: #FFCCCC !important; /* Vermelho mais claro para atrasado com abono */
+/* A classe .overdue-normal não será mais usada, mas pode ser mantida ou removida */
+/* .overdue-normal {
+  background-color: #FFCCCC !important;
   color: #333;
-}
+} */
 
 .due-today {
   background-color: #FFFF00 !important; /* Amarelo para hoje */
