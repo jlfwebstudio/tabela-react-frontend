@@ -6,8 +6,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* Fundo mais suave */
-  color: #333;
+  background-color: #f4f7f6; /* Cor de fundo suave */
 }
 
 code {
@@ -16,6 +15,7 @@ code {
 }
 
 .App {
+  text-align: center;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -25,35 +25,39 @@ code {
   background-color: #282c34;
   padding: 20px;
   color: white;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.App-header h1 {
-  margin: 0;
-  font-size: 2.5em;
-}
-
-.controls-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  gap: 20px; /* Espaçamento entre os grupos de botões */
+}
+
+.App-header h1 {
+  margin-bottom: 20px;
+  font-size: 2.5em;
+  color: #61dafb;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .file-upload-container {
   display: flex;
   align-items: center;
-  gap: 15px;
-  flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
-  justify-content: center;
+  gap: 10px;
+  /* Removido background-color e padding daqui, movido para .custom-file-upload */
+  /* Removido box-shadow daqui */
 }
 
 .custom-file-upload {
+  /* CORREÇÃO AQUI: Estilos para o botão de upload */
   display: inline-flex; /* Usar flex para alinhar ícone e texto */
   align-items: center;
   gap: 8px; /* Espaço entre ícone e texto */
@@ -69,29 +73,28 @@ code {
   flex-shrink: 0; /* Impede que o botão encolha */
   min-width: 180px; /* Garante largura mínima para o texto */
   justify-content: center; /* Centraliza conteúdo */
+  border: none; /* Garante que não haja borda padrão */
 }
 
 .custom-file-upload:hover {
   background-color: #45a049;
 }
 
+#file-upload {
+  display: none;
+}
+
 .file-name-display {
-  font-style: italic;
-  color: #555;
-  max-width: 250px; /* Limita a largura para evitar que o nome do arquivo seja muito longo */
+  font-size: 0.9em;
+  color: #e0e0e0;
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
 .export-button {
+  /* CORREÇÃO AQUI: Estilos para os botões de exportação */
   display: inline-flex; /* Usar flex para alinhar ícone e texto */
   align-items: center;
   gap: 8px; /* Espaço entre ícone e texto */
@@ -127,11 +130,12 @@ code {
   font-size: 1.1em;
   font-weight: bold;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  /* CORREÇÃO AQUI: Adicionado display flex para centralizar o texto */
+  display: flex;
+  justify-content: center;
+  align-items: center;
   flex-shrink: 0; /* Impede que o contador encolha */
   min-width: 180px; /* Garante largura mínima */
-  display: flex; /* Para centralizar o texto */
-  justify-content: center; /* Centraliza o texto */
-  align-items: center; /* Centraliza verticalmente */
 }
 
 .overdue-count .count-number {
@@ -311,12 +315,6 @@ code {
 }
 
 /* Larguras de colunas específicas */
-/* As classes CSS para colunas devem usar nomes normalizados (sem acentos, sem espaços, em minúsculas)
-   para evitar problemas de sintaxe no CSS e corresponder ao que o JS pode gerar.
-   No entanto, como o frontend espera nomes com acento, vamos manter as classes como estão no CSS original
-   e garantir que o JS as referencie corretamente ou que o CSS seja mais genérico.
-   Para este App.css, vou manter as classes como estavam no seu "perfeito" e o JS vai acessá-las.
-*/
 .col-numero-referencia { width: 150px; }
 .col-cnpj-cpf { width: 180px; }
 .col-cidade { width: 150px; }
