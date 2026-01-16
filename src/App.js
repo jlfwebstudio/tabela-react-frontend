@@ -224,9 +224,12 @@ function App() {
   const handleFilterSelectionChange = useCallback((value) => {
     setFilterSelections(prev => ({
       ...prev,
-      [value]: !prev[value]
+      [openDropdown]: {
+        ...prev[openDropdown],
+        [value]: !prev[openDropdown][value]
+      }
     }));
-  }, []);
+  }, [openDropdown]);
 
   // Função para selecionar/desmarcar tudo no filtro
   const toggleSelectAll = useCallback((header, selectAll) => {
@@ -241,22 +244,23 @@ function App() {
 
   // Função para aplicar os filtros
   const applyFilters = useCallback((header) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      [header]: filterSelections
-    }));
+    setActiveFilters(prev => ({ ...prev, [header]: filterSelections[header] }));
     setOpenDropdown(null); // Fecha o dropdown após aplicar
   }, [filterSelections]);
 
   // Função para limpar os filtros de uma coluna
   const clearFilters = useCallback((header) => {
     setActiveFilters(prev => {
-      const newFilters = { ...prev };
-      delete newFilters[header];
-      return newFilters;
+      const newActiveFilters = { ...prev };
+      delete newActiveFilters[header];
+      return newActiveFilters;
     });
-    setFilterSelections({}); // Limpa as seleções do dropdown
-    setOpenDropdown(null); // Fecha o dropdown
+    setFilterSelections(prev => {
+      const newFilterSelections = { ...prev };
+      delete newFilterSelections[header];
+      return newFilterSelections;
+    });
+    setOpenDropdown(null);
   }, []);
 
   // Efeito para aplicar todos os filtros ativos e ordenação
@@ -422,7 +426,8 @@ function App() {
     const ws_data = [tableHeaders.map(header => ({ v: header, t: 's' }))]; // Cabeçalhos
 
     filteredData.forEach(row => {
-      const excelRow = tableHeaders.map(header => {
+      const excelRow = [];
+      tableHeaders.forEach(header => {
         const { content, className } = getCellContentAndClassName(row, header);
         let cellValue = content;
         let cellType = 's'; // Default to string
@@ -477,7 +482,7 @@ function App() {
           };
         }
 
-        return cell;
+        excelRow.push(cell);
       });
       ws_data.push(excelRow);
     });

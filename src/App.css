@@ -1,103 +1,105 @@
 /* frontend/src/App.css */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6; /* Cor de fundo suave */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
 .App {
   text-align: center;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f7f6;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  color: #333;
-  padding: 20px;
-  box-sizing: border-box;
+  min-height: 100vh;
 }
 
 .App-header {
-  background-color: #ffffff;
-  padding: 20px 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-  width: 100%;
-  max-width: 1200px;
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .App-header h1 {
-  color: #2c3e50;
-  margin: 0;
-  font-size: 2.2em;
-  font-weight: 600;
+  margin-bottom: 20px;
+  font-size: 2.5em;
+  color: #61dafb;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .file-upload-container {
   display: flex;
   align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.custom-file-upload {
+  gap: 10px;
   background-color: #4CAF50; /* Verde */
   color: white;
-  padding: 12px 25px;
+  padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1em;
-  font-weight: 500;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  transition: background-color 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.custom-file-upload:hover {
+.file-upload-container:hover {
   background-color: #45a049;
-  transform: translateY(-2px);
+}
+
+.custom-file-upload {
+  display: inline-block;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.file-upload-container input[type="file"] {
+  display: none;
 }
 
 .file-name-display {
-  font-style: italic;
-  color: #555;
-  font-size: 0.95em;
-  max-width: 250px;
+  font-size: 0.9em;
+  color: #e0e0e0;
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
-  width: 100%;
-}
-
 .export-button {
   background-color: #007bff; /* Azul */
   color: white;
-  padding: 12px 25px;
+  padding: 10px 20px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1em;
-  font-weight: 500;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .export-button:hover:not(:disabled) {
   background-color: #0056b3;
-  transform: translateY(-2px);
 }
 
 .export-button:disabled {
@@ -106,113 +108,59 @@
 }
 
 .overdue-count {
-  background-color: #f44336; /* Vermelho */
+  background-color: #dc3545; /* Vermelho */
   color: white;
-  padding: 12px 25px;
+  padding: 10px 20px;
   border-radius: 8px;
-  font-size: 1em;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .overdue-count .count-number {
-  font-weight: bold;
   font-size: 1.2em;
+  font-weight: bolder;
 }
 
 .error-message {
-  color: #d32f2f;
-  background-color: #ffebee;
-  border: 1px solid #ef9a9a;
-  padding: 10px 20px;
-  border-radius: 8px;
+  color: #dc3545;
   margin-top: 20px;
-  font-weight: 500;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
 }
 
 .data-table-container {
-  width: 100%;
-  max-width: 100%; /* Ocupa a largura total da página */
-  overflow-x: auto; /* Adiciona scroll horizontal se a tabela for muito larga */
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  box-sizing: border-box;
+  overflow-x: auto; /* Permite rolagem horizontal */
+  margin: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  flex-grow: 1; /* Permite que a tabela ocupe o espaço restante */
 }
 
 .data-table {
-  width: 100%;
+  width: 100%; /* Ocupa a largura total do container */
   border-collapse: collapse;
-  margin: 0;
-  font-size: 0.9em;
-  table-layout: fixed; /* Garante que as larguras das colunas sejam respeitadas */
+  min-width: 1500px; /* Largura mínima para garantir que todas as colunas caibam */
 }
 
 .data-table th,
 .data-table td {
-  border: 1px solid #e0e0e0;
+  border: 1px solid #ddd;
   padding: 12px 15px;
   text-align: left;
-  white-space: nowrap; /* Evita quebra de linha padrão */
+  white-space: nowrap; /* Impede que o texto quebre linha */
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .data-table th {
-  background-color: #4472C4; /* Azul escuro */
-  color: white;
-  font-weight: 600;
+  background-color: #f2f2f2;
+  font-weight: bold;
+  color: #333;
   position: sticky;
   top: 0;
   z-index: 10;
-  cursor: pointer;
-  padding-right: 35px; /* Espaço para ícones */
 }
-
-.data-table th .header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 5px;
-}
-
-.data-table th .sort-icon {
-  margin-left: 5px;
-  font-size: 0.8em;
-}
-
-.data-table th .filter-icon {
-  margin-left: auto; /* Empurra o ícone de filtro para a direita */
-  cursor: pointer;
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.7);
-  transition: color 0.2s ease;
-}
-
-.data-table th .filter-icon:hover,
-.data-table th .filter-icon.active {
-  color: white;
-}
-
-/* Larguras específicas para colunas */
-.data-table th:nth-child(1), .data-table td:nth-child(1) { min-width: 120px; max-width: 120px; } /* Chamado */
-.data-table th:nth-child(2), .data-table td:nth-child(2) { min-width: 180px; max-width: 180px; } /* Numero Referencia */
-.data-table th:nth-child(3), .data-table td:nth-child(3) { min-width: 180px; max-width: 180px; } /* Contratante */
-.data-table th:nth-child(4), .data-table td:nth-child(4) { min-width: 250px; max-width: 250px; } /* Serviço */
-.data-table th:nth-child(5), .data-table td:nth-child(5) { min-width: 150px; max-width: 150px; } /* Status */
-.data-table th:nth-child(6), .data-table td:nth-child(6) { min-width: 140px; max-width: 140px; } /* Data Limite */
-.data-table th:nth-child(7), .data-table td:nth-child(7) { min-width: 200px; max-width: 200px; } /* Cliente */
-.data-table th:nth-child(8), .data-table td:nth-child(8) { min-width: 180px; max-width: 180px; } /* CNPJ / CPF */
-.data-table th:nth-child(9), .data-table td:nth-child(9) { min-width: 150px; max-width: 150px; } /* Cidade */
-.data-table th:nth-child(10), .data-table td:nth-child(10) { min-width: 200px; max-width: 200px; } /* Técnico */
-.data-table th:nth-child(11), .data-table td:nth-child(11) { min-width: 200px; max-width: 200px; } /* Prestador */
-.data-table th:nth-child(12), .data-table td:nth-child(12) { min-width: 250px; max-width: 250px; } /* Justificativa do Abono */
-
 
 .data-table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
@@ -222,64 +170,96 @@
   background-color: #f1f1f1;
 }
 
-/* Cores das linhas */
-.overdue-row-strong {
-  background-color: #FFCDD2 !important; /* Vermelho forte */
+/* Classes para cores das linhas */
+.overdue-strong {
+  background-color: #FF0000 !important; /* Vermelho forte para atrasado */
+  color: white;
 }
 
-.due-today-row {
-  background-color: #FFF9C4 !important; /* Amarelo sutil */
+.overdue-normal {
+  background-color: #FFCCCC !important; /* Vermelho mais claro para atrasado com abono */
+  color: #333;
 }
 
-/* Estilo para a célula "Falta Abonar" */
-.falta-abonar-cell {
+.due-today {
+  background-color: #FFFF00 !important; /* Amarelo para hoje */
+  color: #333;
+}
+
+/* Classe para "FALTA ABONAR" */
+.falta-abonar {
   background-color: #800080 !important; /* Roxo */
-  color: white !important;
-  font-weight: bold !important;
-  text-align: center !important;
+  color: white !important; /* Texto branco */
+  font-weight: bold;
 }
 
+/* Estilos para o cabeçalho da tabela com filtros e ordenação */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.sortable-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sort-icon {
+  font-size: 0.8em;
+}
+
+.filter-icon {
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+.filter-icon.filter-active {
+  color: #007bff; /* Azul para indicar filtro ativo */
+}
+
+/* Dropdown de filtro */
 .filter-dropdown {
   position: absolute;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  padding: 15px;
-  min-width: 220px;
-  max-height: 300px; /* Altura máxima para scroll */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100; /* Garante que fique acima da tabela */
+  padding: 10px;
+  min-width: 200px;
+  max-height: 300px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  text-align: left;
 }
 
 .filter-options-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
 }
 
 .filter-option {
   display: flex;
   align-items: center;
-  gap: 8px;
+  margin-bottom: 5px;
   font-size: 0.9em;
-  color: #333;
   cursor: pointer;
 }
 
-.filter-option input[type="checkbox"] {
-  accent-color: #4472C4; /* Cor do checkbox */
-  cursor: pointer;
+.filter-option input {
+  margin-right: 8px;
 }
 
 .filter-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 5px;
   margin-top: 10px;
   justify-content: space-between;
 }
@@ -311,6 +291,15 @@
 .filter-actions button:nth-child(4):hover {
   background-color: #5a6268;
 }
+
+/* Larguras de colunas específicas */
+.col-numero-referencia { width: 100px; }
+.col-cnpj-cpf { width: 150px; }
+.col-cidade { width: 120px; }
+.col-servico { width: 180px; }
+.col-tecnico { width: 180px; }
+.col-justificativa { width: 250px; }
+
 
 /* Responsividade */
 @media (max-width: 768px) {
