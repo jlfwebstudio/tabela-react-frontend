@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx-js-style';
 // eslint-disable-next-line no-unused-vars
 import { saveAs } from 'file-saver'; // 'saveAs' é usado, mas o ESLint pode não detectar. Desabilitando a regra aqui.
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilter, faSortUp, faSortDown, faFileExcel, faFileUpload, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faFilter, faSortUp, faSortDown, faFileExcel, faFileUpload } from '@fortawesome/free-solid-svg-icons'; // Removido faSearch
 import './App.css';
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
   const [overdueCount, setOverdueCount] = useState(0);
   const [sortConfig, setSortConfig] = useState({ key: 'Data Limite', direction: 'ascending' });
   const [selectedFileName, setSelectedFileName] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  // REMOVIDO: const [searchTerm, setSearchTerm] = useState('');
 
   const tableHeaders = useMemo(() => [
     'Chamado',
@@ -96,12 +96,13 @@ function App() {
 
       return dataLimite < today;
     }).length;
+
     setOverdueCount(count);
   }, [filteredData]);
 
-  // Efeito para aplicar filtros e pesquisa global
+  // Efeito para aplicar filtros de coluna
   useEffect(() => {
-    let currentFilteredData = data;
+    let currentFilteredData = [...data];
 
     // Aplicar filtros de coluna
     Object.keys(activeFilters).forEach(header => {
@@ -118,20 +119,8 @@ function App() {
       }
     });
 
-    // Aplicar pesquisa global
-    if (searchTerm) {
-      const normalizedSearchTerm = normalizeForComparison(searchTerm);
-      currentFilteredData = currentFilteredData.filter(row =>
-        tableHeaders.some(header => {
-          const cellValue = String(row[header] || '').trim();
-          const normalizedCellValue = normalizeForComparison(cellValue);
-          return normalizedCellValue.includes(normalizedSearchTerm);
-        })
-      );
-    }
-
     setFilteredData(currentFilteredData);
-  }, [data, activeFilters, searchTerm, normalizeForComparison, tableHeaders]);
+  }, [data, activeFilters, normalizeForComparison, tableHeaders]); // Removido searchTerm
 
   // Função para lidar com o upload do arquivo CSV
   const handleFileUpload = async (event) => {
@@ -145,21 +134,26 @@ function App() {
     setFilteredData([]); // Limpa dados filtrados anteriores
     setActiveFilters({}); // Limpa filtros ativos
     setFilterSelections({}); // Limpa seleções de filtro
-    setSearchTerm(''); // Limpa o termo de pesquisa
+    // REMOVIDO: setSearchTerm(''); // Limpa o termo de pesquisa
 
     const formData = new FormData();
     formData.append('file', file); // Nome do campo deve ser 'file' para corresponder ao backend
 
     try {
-      const response = await axios.post('https://tabela-react-backend.onrender.com/upload', formData, {
+      // CORREÇÃO AQUI: Usar process.env.REACT_APP_BACKEND_URL
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+      const response = await axios.post(`${backendUrl}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       setData(response.data);
+      setFilteredData(response.data); // Inicializa filteredData com todos os dados
     } catch (err) {
       console.error('Erro ao carregar o arquivo:', err);
       setError('Erro ao carregar o arquivo. Verifique o formato ou tente novamente.');
+      setData([]);
+      setFilteredData([]);
     } finally {
       setLoading(false);
     }
@@ -280,9 +274,14 @@ function App() {
         }
 
         // Ordenação padrão para outros campos
-        if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
-        return 0;
+        // CORREÇÃO AQUI: Adicionado chaves para o bloco if/else if/else
+        if (aValue < bValue) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        } else if (aValue > bValue) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        } else {
+          return 0;
+        }
       });
     }
     return sortableItems;
@@ -291,7 +290,7 @@ function App() {
   // Função para determinar a classe da linha com base na Data Limite
   const getRowClassByDataLimite = useCallback((row) => {
     const dataLimiteStr = row['Data Limite'];
-    const faltaAbonarValue = normalizeForComparison(row['FALTA ABONAR']); // Usando a variável aqui
+    const justificativaAbono = String(row['Justificativa do Abono'] || '').trim(); // Obter o valor da justificativa
 
     if (!dataLimiteStr) return '';
 
@@ -304,32 +303,33 @@ function App() {
     today.setHours(0, 0, 0, 0);
     dataLimite.setHours(0, 0, 0, 0);
 
-    if (faltaAbonarValue === 'FALTA ABONAR') {
-      return 'falta-abonar'; // Prioridade para roxo se tiver "FALTA ABONAR"
+    // Prioridade para roxo se a justificativa for "FALTA ABONAR" e a data estiver atrasada
+    if (dataLimite < today && justificativaAbono === 'FALTA ABONAR') {
+      return 'falta-abonar'; // Esta classe será usada para a linha inteira
     } else if (dataLimite < today) {
-      return 'overdue-strong'; // Vermelho forte para atrasados
+      return 'overdue-strong'; // Vermelho forte para atrasados (sem "FALTA ABONAR")
     } else if (dataLimite.getTime() === today.getTime()) {
       return 'due-today'; // Amarelo para hoje
     }
     return ''; // Sem classe para datas futuras
-  }, [normalizeForComparison]);
+  }, []);
 
 
   // Função para obter o conteúdo e a classe da célula
   const getCellContentAndClassName = useCallback((row, header) => {
     let content = row[header];
-    let className = '';
+    let className = ''; // Inicializa como string vazia
 
     if (header === 'CNPJ / CPF') {
       content = formatCnpjCpf(content);
       className = 'col-cnpj-cpf';
     } else if (header === 'Data Limite') {
       content = formatDataLimite(content);
-    } else if (header === 'FALTA ABONAR') { // Este header não existe na tableHeaders, mas é usado para lógica
-      const faltaAbonarValue = normalizeForComparison(row['FALTA ABONAR']);
-      if (faltaAbonarValue === 'FALTA ABONAR') {
-        className = 'falta-abonar-cell'; // Classe específica para a célula "FALTA ABONAR"
-      }
+    }
+
+    // Aplica a classe 'falta-abonar-cell' se a célula for 'Justificativa do Abono' e contiver 'FALTA ABONAR'
+    if (header === 'Justificativa do Abono' && String(content || '').trim() === 'FALTA ABONAR') {
+      className += ' falta-abonar-cell'; // Adiciona a classe
     }
 
     // Adiciona classes de largura de coluna
@@ -339,8 +339,9 @@ function App() {
     else if (header === 'Técnico') className += ' col-tecnico';
     else if (header === 'Justificativa do Abono') className += ' col-justificativa';
 
-    return { content, className: className.trim() };
-  }, [formatCnpjCpf, formatDataLimite, normalizeForComparison]);
+    // eslint-disable-next-line no-unused-vars
+    return { content, className: className.trim() }; // 'content' é usado no JSX
+  }, [formatCnpjCpf, formatDataLimite]);
 
 
   // Função para exportar dados para Excel
@@ -350,61 +351,72 @@ function App() {
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const ws = XLSX.utils.aoa_to_sheet([]); // Cria uma planilha vazia
 
-    // Aplicar estilos de cor
+    // Adiciona cabeçalhos com estilo
+    const headerStyle = {
+      fill: { fgColor: { rgb: "4472C4" } }, // Azul escuro
+      font: { color: { rgb: "FFFFFF" }, bold: true },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top: { style: "thin", color: { rgb: "000000" } },
+        bottom: { style: "thin", color: { rgb: "000000" } },
+        left: { style: "thin", color: { rgb: "000000" } },
+        right: { style: "thin", color: { rgb: "000000" } },
+      },
+    };
+
+    // Aplica estilo ao cabeçalho
+    XLSX.utils.sheet_add_aoa(ws, [tableHeaders.map(h => ({ v: h, t: 's', s: headerStyle }))], { origin: "A1" });
+
+    // Adiciona dados e aplica estilos de linha e célula
     dataToExport.forEach((row, rowIndex) => {
+      const excelRow = [];
       const rowClass = getRowClassByDataLimite(row);
-      let fillColor = '';
-      let fontColor = '000000'; // Preto padrão
+      let fillColor = null;
+      let fontColor = { rgb: "000000" }; // Padrão preto
 
       if (rowClass === 'overdue-strong') {
-        fillColor = 'FF0000'; // Vermelho forte
-        fontColor = 'FFFFFF'; // Branco
+        fillColor = { rgb: "FF0000" }; // Vermelho forte
+        fontColor = { rgb: "FFFFFF" }; // Branco
       } else if (rowClass === 'due-today') {
-        fillColor = 'FFFF00'; // Amarelo
-        fontColor = '000000'; // Preto
-      } else if (rowClass === 'falta-abonar') {
-        fillColor = '800080'; // Roxo
-        fontColor = 'FFFFFF'; // Branco
+        fillColor = { rgb: "FFFF00" }; // Amarelo
+        fontColor = { rgb: "000000" }; // Preto
+      } else if (rowClass === 'falta-abonar') { // Linha roxa para "FALTA ABONAR"
+        fillColor = { rgb: "800080" }; // Roxo
+        fontColor = { rgb: "FFFFFF" }; // Branco
+      } else if (rowIndex % 2 === 0) { // Linhas pares (fundo cinza claro)
+        fillColor = { rgb: "F0F0F0" };
+      } else { // Linhas ímpares (fundo branco)
+        fillColor = { rgb: "FFFFFF" };
       }
 
-      // Aplicar cor de fundo da linha
-      if (fillColor) {
-        tableHeaders.forEach((header, colIndex) => {
-          const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex }); // +1 para pular o cabeçalho
-          if (!ws[cellRef]) ws[cellRef] = {};
-          ws[cellRef].s = {
-            fill: { fgColor: { rgb: fillColor } },
-            font: { color: { rgb: fontColor } },
-            alignment: { vertical: 'center', horizontal: 'left' },
-            border: {
-              top: { style: 'thin', color: { rgb: 'CCCCCC' } },
-              bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
-              left: { style: 'thin', color: { rgb: 'CCCCCC' } },
-              right: { style: 'thin', color: { rgb: 'CCCCCC' } },
-            },
-          };
-        });
-      }
+      tableHeaders.forEach((header, colIndex) => {
+        const { content, className } = getCellContentAndClassName(row, header);
+        let cellStyle = {
+          fill: fillColor,
+          font: fontColor,
+          alignment: { horizontal: "left", vertical: "center" },
+          border: {
+            top: { style: "thin", color: { rgb: "CCCCCC" } },
+            bottom: { style: "thin", color: { rgb: "CCCCCC" } },
+            left: { style: "thin", color: { rgb: "CCCCCC" } },
+            right: { style: "thin", color: { rgb: "CCCCCC" } },
+          },
+        };
 
-      // Sobrescrever cor da célula "FALTA ABONAR" se existir e for roxa
-      const faltaAbonarValue = normalizeForComparison(row['FALTA ABONAR']);
-      if (faltaAbonarValue === 'FALTA ABONAR') {
-        const faltaAbonarColIndex = tableHeaders.indexOf('Justificativa do Abono'); // Assumindo que "FALTA ABONAR" aparece nesta coluna
-        if (faltaAbonarColIndex !== -1) {
-          const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: faltaAbonarColIndex });
-          if (!ws[cellRef]) ws[cellRef] = {};
-          ws[cellRef].s = {
-            ...ws[cellRef].s, // Manter estilos existentes
-            fill: { fgColor: { rgb: '800080' } }, // Roxo
-            font: { color: { rgb: 'FFFFFF' } }, // Branco
-          };
+        // Sobrescrever estilo da célula "FALTA ABONAR" se aplicável (para garantir negrito, etc.)
+        if (className.includes('falta-abonar-cell')) {
+          cellStyle.fill = { fgColor: { rgb: "800080" } }; // Roxo
+          cellStyle.font = { bold: true, color: { rgb: "FFFFFF" } }; // Branco e negrito
         }
-      }
+
+        excelRow.push({ v: content, t: 's', s: cellStyle });
+      });
+      XLSX.utils.sheet_add_aoa(ws, [excelRow], { origin: -1 }); // Adiciona a linha na próxima posição
     });
 
-    // Ajustar largura das colunas
+    // Ajusta a largura das colunas automaticamente
     const colWidths = tableHeaders.map(header => ({
       wch: Math.max(
         header.length,
@@ -414,12 +426,12 @@ function App() {
     ws['!cols'] = colWidths;
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Dados');
-    XLSX.writeFile(wb, filename);
-  }, [getRowClassByDataLimite, tableHeaders, normalizeForComparison]);
+    XLSX.utils.book_append_sheet(wb, ws, "Dados");
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, filename);
+  }, [tableHeaders, getRowClassByDataLimite, getCellContentAndClassName]);
 
-
-  // Função para exportar apenas pendências do dia
   const handleExportPendingToExcel = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -438,6 +450,11 @@ function App() {
       return dataLimite <= today;
     });
 
+    if (pendingData.length === 0) {
+      alert('Nenhum registro de pendência do dia encontrado para exportar.');
+      return;
+    }
+
     exportDataToExcel(pendingData, 'pendencias_do_dia.xlsx');
   }, [filteredData, exportDataToExcel]);
 
@@ -445,7 +462,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Tabela de Chamados</h1>
+        <h1>Gerenciador de OS</h1>
+
         <div className="file-upload-container">
           <label htmlFor="file-upload" className="custom-file-upload">
             <FontAwesomeIcon icon={faFileUpload} /> {selectedFileName || 'Carregar Arquivo CSV'}
@@ -468,7 +486,8 @@ function App() {
           </div>
         )}
 
-        {data.length > 0 && (
+        {/* REMOVIDO: CAMPO DE PESQUISA GLOBAL */}
+        {/* {data.length > 0 && (
           <div className="search-bar-container">
             <FontAwesomeIcon icon={faSearch} className="search-icon" />
             <input
@@ -479,7 +498,7 @@ function App() {
               className="global-search-input"
             />
           </div>
-        )}
+        )} */}
       </header>
 
       {loading && <div className="loading-message">Carregando...</div>}
@@ -544,8 +563,7 @@ function App() {
               {sortedData.map((row, rowIndex) => (
                 <tr key={rowIndex} className={getRowClassByDataLimite(row)}>
                   {tableHeaders.map((header) => {
-                    // eslint-disable-next-line no-unused-vars
-                    const { content, className } = getCellContentAndClassName(row, header); // 'content' é usado no JSX
+                    const { content, className } = getCellContentAndClassName(row, header);
                     return (
                       <td key={header} className={className}>
                         {content}
