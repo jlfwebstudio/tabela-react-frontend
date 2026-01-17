@@ -1,76 +1,32 @@
-/* frontend/src/App.css */
+/* Geral */
 body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* Cor de fundo suave para toda a página */
+  background-color: #f4f7f6;
   color: #333;
+  line-height: 1.6;
 }
 
 .App {
-  text-align: center;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+/* Cabeçalho */
 .App-header {
   background-color: #282c34;
-  padding: 20px;
+  padding: 20px 40px;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   margin-bottom: 20px;
 }
 
 .App-header h1 {
   margin: 0 0 20px 0;
   font-size: 2.5em;
-}
-
-.file-upload-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap; /* Permite quebrar linha em telas menores */
-}
-
-.custom-file-upload {
-  background-color: #007bff;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap; /* Evita quebra de linha */
-  overflow: hidden; /* Esconde o texto que excede */
-  text-overflow: ellipsis; /* Adiciona reticências */
-  max-width: 250px; /* Limita a largura para o ellipsis funcionar */
-}
-
-.custom-file-upload:hover {
-  background-color: #0056b3;
-}
-
-.file-upload-container input[type="file"] {
-  display: none;
-}
-
-.file-name-display {
-  font-size: 0.9em;
-  color: #bbb;
-  max-width: 200px; /* Limita a largura para o nome do arquivo */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 600;
 }
 
 .action-buttons {
@@ -81,141 +37,160 @@ body {
   flex-wrap: wrap;
 }
 
-.export-button {
-  background-color: #28a745;
+.file-upload-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.custom-file-upload, .upload-button, .export-button {
+  background-color: #4472C4; /* Azul primário */
   color: white;
-  padding: 12px 20px;
-  border: none;
+  padding: 12px 25px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
-  transition: background-color 0.2s ease;
-  display: flex;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  border: none;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap; /* Garante que o texto não quebre */
+  overflow: hidden; /* Esconde o excesso */
+  text-overflow: ellipsis; /* Adiciona reticências se o texto for muito longo */
+  max-width: 250px; /* Limita a largura para o ellipsis funcionar */
+}
+
+.custom-file-upload:hover, .upload-button:hover, .export-button:hover {
+  background-color: #335a9b; /* Azul mais escuro no hover */
+  transform: translateY(-1px);
+}
+
+.custom-file-upload:active, .upload-button:active, .export-button:active {
+  transform: translateY(0);
+}
+
+.upload-button:disabled, .export-button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.file-name-display {
+  color: #f0f0f0;
+  font-size: 0.9em;
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 250px;
-}
-
-.export-button:hover:not(:disabled) {
-  background-color: #218838;
-}
-
-.export-button:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
 }
 
 .overdue-count {
-  background-color: #dc3545;
+  background-color: #dc3545; /* Vermelho para o contador */
   color: white;
-  padding: 12px 20px;
+  padding: 12px 25px;
   border-radius: 8px;
   font-size: 1em;
-  font-weight: bold;
-  white-space: nowrap;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px; /* Garante que o contador tenha uma largura mínima */
 }
 
 .count-number {
   font-size: 1.2em;
-  margin-left: 5px;
-}
-
-.App-main {
-  flex-grow: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+  font-weight: 700;
+  margin-left: 8px;
 }
 
 .error-message {
-  color: #dc3545;
-  font-weight: bold;
+  color: #ffdddd;
+  background-color: #dc3545;
+  padding: 10px 20px;
+  border-radius: 5px;
   margin-top: 20px;
+  font-weight: bold;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .no-data-message {
+  text-align: center;
   color: #6c757d;
   font-size: 1.2em;
   margin-top: 50px;
 }
 
+/* Tabela */
 .data-table-container {
-  width: 100%;
-  overflow-x: auto; /* Permite rolagem horizontal */
-  margin-top: 20px;
+  flex-grow: 1;
+  padding: 20px;
+  overflow-x: auto; /* Permite scroll horizontal na tabela */
+}
+
+.table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
   background-color: white;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px; /* Garante que a tabela tenha uma largura mínima para rolagem */
+  min-width: 1200px; /* Largura mínima para evitar quebras em telas menores */
 }
 
-.data-table th,
-.data-table td {
+.data-table th, .data-table td {
   padding: 12px 15px;
-  border: 1px solid #ddd;
   text-align: left;
+  border-bottom: 1px solid #e0e0e0;
   white-space: nowrap; /* Evita quebra de linha nas células */
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .data-table th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-  color: #333;
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-/* Ajuste para as linhas que não têm cor específica (nem atrasadas, nem vencendo hoje) */
-.data-table tbody tr {
-  background-color: #ffffff; /* Fundo branco padrão para linhas ímpares */
-}
-
-.data-table tbody tr:nth-child(even) {
-  background-color: #f0f0f0; /* Fundo cinza claro para linhas pares */
-}
-
 .data-table tbody tr:hover {
-  background-color: #e0e0e0; /* Fundo um pouco mais escuro ao passar o mouse */
+  background-color: #f1f1f1;
 }
 
-/* Classes para cores das linhas */
-.overdue-strong {
-  background-color: #FF0000 !important; /* Vermelho forte para TODOS atrasados */
-  color: white !important; /* Texto branco para contraste */
+/* Cores das linhas */
+.row-overdue {
+  background-color: #C00000; /* Vermelho intenso */
+  color: white;
 }
 
-.due-today {
-  background-color: #FFFF00 !important; /* Amarelo para hoje */
-  color: #333 !important; /* Texto escuro para contraste */
+.row-due-today {
+  background-color: #FFC000; /* Amarelo */
+  color: #333; /* Texto escuro para contraste */
 }
 
-/* Classe para "FALTA ABONAR" (esta classe não será aplicada diretamente à linha, mas sim à célula se necessário) */
-/* A cor da linha será definida por .overdue-strong se for atrasada */
-.falta-abonar-cell { /* Nova classe para a célula específica */
-  background-color: #800080 !important; /* Roxo */
-  color: white !important; /* Texto branco */
-  font-weight: bold;
+/* Cor da célula "FALTA ABONAR" */
+.cell-falta-abonar {
+  background-color: #800080 !important; /* Roxo intenso, !important para sobrescrever a cor da linha */
+  color: white !important; /* Texto branco, !important para sobrescrever */
 }
 
-/* Estilos para o cabeçalho da tabela com filtros e ordenação */
+/* Ícones de ordenação e filtro */
 .header-content {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 5px;
+  align-items: center;
+  position: relative; /* Para posicionar o dropdown */
 }
 
 .sortable-header {
@@ -223,6 +198,7 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-grow: 1;
 }
 
 .sort-icon {
@@ -233,6 +209,7 @@ body {
   cursor: pointer;
   color: #6c757d;
   font-size: 0.9em;
+  margin-left: 10px; /* Espaçamento para o ícone de filtro */
 }
 
 .filter-icon.filter-active {
@@ -253,6 +230,8 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  top: 100%; /* Posiciona abaixo do cabeçalho */
+  left: 0;
 }
 
 .filter-options-container {
