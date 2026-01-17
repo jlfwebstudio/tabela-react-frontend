@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSortUp, faSortDown, faFilter, faSearch, faUpload, faFileExcel } from '@fortawesome/free-solid-svg-icons';
+import { faSortUp, faSortDown, faFilter, faSearch, faUpload, faFileExcel, faSort } from '@fortawesome/free-solid-svg-icons'; // Adicionado faSort
 import './App.css';
 
 function App() {
@@ -82,18 +82,14 @@ function App() {
   }, [parseDateForComparison, today]);
 
   const getRowClass = useCallback((row) => {
-    const justificativa = normalizeForComparison(row['Justificativa do Abono']);
-    const isRowOverdue = isOverdue(row);
-    const isRowDueToday = isDueToday(row);
-
-    if (isRowOverdue) {
+    if (isOverdue(row)) {
       return 'row-overdue';
-    } else if (isRowDueToday) {
+    } else if (isDueToday(row)) {
       return 'row-due-today';
     } else {
       return 'row-default-blue';
     }
-  }, [isOverdue, isDueToday, normalizeForComparison]);
+  }, [isOverdue, isDueToday]);
 
   const getJustificativaCellStyle = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
@@ -120,7 +116,7 @@ function App() {
     setError('');
     // Resetar estados relevantes ao selecionar novo arquivo
     setData([]);
-    setTableHeaders([]);
+    setTableHeaders(defaultTableHeaders); // Define os cabeçalhos padrão imediatamente
     setSortColumn('Data Limite');
     setSortDirection('asc');
     setSearchTerm('');
@@ -128,7 +124,7 @@ function App() {
     setSelectedFilterOptions({
       'Status': ['ENCAMINHADA', 'EM TRANSFERÊNCIA', 'EM CAMPO', 'REENCAMINHADO', 'PROCEDIMENTO TÉCNICO']
     });
-  }, []);
+  }, [defaultTableHeaders]);
 
   const handleUpload = useCallback(async () => {
     if (!file) {
@@ -139,7 +135,7 @@ function App() {
     setLoading(true);
     setError('');
     setData([]);
-    setTableHeaders([]);
+    setTableHeaders(defaultTableHeaders); // Garante que os cabeçalhos padrão estejam definidos
 
     const formData = new FormData();
     formData.append('file', file);
@@ -157,8 +153,10 @@ function App() {
 
       const result = await response.json();
       if (result.length > 0) {
-        // Define os cabeçalhos da tabela com base na primeira linha do CSV
-        setTableHeaders(Object.keys(result[0]));
+        // Atualiza tableHeaders com base nos dados reais, mas mantém a ordem de defaultTableHeaders
+        const actualHeaders = Object.keys(result[0]);
+        const orderedHeaders = defaultTableHeaders.filter(header => actualHeaders.includes(header));
+        setTableHeaders(orderedHeaders);
         setData(result);
       } else {
         setError('O arquivo CSV está vazio ou não contém dados válidos.');
@@ -169,7 +167,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [file, backendUrl]);
+  }, [file, backendUrl, defaultTableHeaders]);
 
   // Efeito para gerar opções de filtro quando os dados ou cabeçalhos mudam
   useEffect(() => {
@@ -193,6 +191,15 @@ function App() {
   const handleSearchChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
+
+  const handleSort = useCallback((column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  }, [sortColumn, sortDirection]);
 
   const toggleFilterDropdown = useCallback((header) => {
     setActiveFilterColumn(prev => (prev === header ? null : header));
@@ -325,7 +332,13 @@ function App() {
       if (header === 'Serviço') width = 30;
       else if (header === 'Justificativa do Abono') width = 35;
       else if (header === 'CNPJ / CPF') width = 20;
-      else if (header === 'Contratante' || header === 'Cliente' || header === 'Técnico' || header === 'Prestador') width = 25;
+      else if (header === 'Numero Referencia') width = 20;
+      else if (header === 'Data Limite') width = 15;
+      else if (header === 'Cliente') width = 25;
+      else if (header === 'Contratante') width = 25;
+      else if (header === 'Técnico') width = 25;
+      else if (header === 'Prestador') width = 25;
+      else if (header === 'Cidade') width = 20;
       return { wch: width };
     });
     ws['!cols'] = wscols;
@@ -395,7 +408,7 @@ function App() {
 
       const isRowOverdue = isOverdue(originalRow);
       const isRowDueToday = isDueToday(originalRow);
-      const justificativaText = originalRow['Justificativa do Abono']; // Já está "FALTA ABONAR" se for o caso
+      const justificativaText = originalRow['Justificativa do Abono'];
 
       for (let C = 0; C < tableHeaders.length; ++C) {
         const header = tableHeaders[C];
@@ -441,7 +454,7 @@ function App() {
         <div className="action-buttons-container">
           <div className="file-upload-section">
             <label htmlFor="file-upload" className="custom-file-upload">
-              <FontAwesomeIcon icon={faUpload} /> Selecionar CSV
+              <FontAwesomeIcon icon={faUpload} /> {file ? file.name : 'Selecionar CSV'}
             </label>
             <input
               id="file-upload"
@@ -450,7 +463,6 @@ function App() {
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
-            {file && <span className="file-name">{file.name}</span>}
             <button onClick={handleUpload} disabled={!file || loading} className="process-csv-button">
               {loading ? 'Processando...' : 'Processar CSV'}
             </button>
@@ -463,7 +475,7 @@ function App() {
                 type="text"
                 placeholder="Pesquisar na tabela..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="search-input"
               />
             </div>
@@ -488,14 +500,20 @@ function App() {
                     <div className="th-content">
                       <span onClick={() => handleSort(header)} className="sortable-header">
                         {header}
-                        {sortColumn === header && (
-                          <FontAwesomeIcon icon={sortDirection === 'asc' ? faSortUp : faSortDown} className="sort-icon" />
+                        {sortColumn === header ? (
+                          sortDirection === 'asc' ? (
+                            <FontAwesomeIcon icon={faSortUp} className="sort-icon" />
+                          ) : (
+                            <FontAwesomeIcon icon={faSortDown} className="sort-icon" />
+                          )
+                        ) : (
+                          <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
                         )}
                       </span>
                       <div className="filter-container" ref={filterDropdownRef}>
                         <FontAwesomeIcon
                           icon={faFilter}
-                          className={`filter-icon ${activeFilterDropdown === header || (selectedFilterOptions[header] && selectedFilterOptions[header].length > 0) ? 'active' : ''}`}
+                          className={`filter-icon ${activeFilterColumn === header || (selectedFilterOptions[header] && selectedFilterOptions[header].length > 0) ? 'active' : ''}`}
                           onClick={() => toggleFilterDropdown(header)}
                         />
                         {activeFilterColumn === header && (
@@ -505,7 +523,7 @@ function App() {
                                 <label key={option} className="filter-option">
                                   <input
                                     type="checkbox"
-                                    checked={selectedFilterOptions[header] ? selectedFilterOptions[header].includes(option) : false}
+                                    checked={selectedFilterOptions[header]?.includes(option) || false}
                                     onChange={(e) => handleFilterOptionChange(header, option, e.target.checked)}
                                   />
                                   {option}
