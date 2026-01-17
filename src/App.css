@@ -1,13 +1,11 @@
 /* frontend/src/App.css */
 body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* Cor de fundo suave para a página */
+  padding: 0;
+  background-color: #f4f7f6;
   color: #333;
+  line-height: 1.6;
 }
 
 .App {
@@ -17,12 +15,14 @@ body {
 }
 
 .App-header {
-  background-color: #4472C4; /* Azul mais escuro para o cabeçalho */
-  padding: 20px;
+  background-color: #4472C4; /* Azul mais escuro */
   color: white;
-  text-align: center;
+  padding: 20px 30px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 .App-header h1 {
@@ -31,39 +31,28 @@ body {
   font-weight: 600;
 }
 
-.action-bar {
-  display: flex;
-  flex-wrap: wrap; /* Permite que os itens quebrem linha em telas menores */
-  justify-content: center;
-  align-items: center;
-  gap: 20px; /* Espaçamento entre os grupos de botões */
-  margin-top: 20px;
-}
-
 .file-upload-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap; /* Permite que o nome do arquivo quebre linha */
+  gap: 15px;
+  flex-wrap: wrap;
   justify-content: center;
 }
 
 .custom-file-upload {
   background-color: #28a745; /* Verde para upload */
   color: white;
-  padding: 10px 20px;
+  padding: 12px 25px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
-  transition: background-color 0.2s ease;
-  display: inline-flex; /* Para alinhar ícone e texto */
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 150px; /* Garante largura mínima */
-  justify-content: center;
-  white-space: nowrap; /* Impede que o texto quebre */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Adiciona reticências se o texto for muito longo */
+  gap: 10px;
+  white-space: nowrap; /* Garante que o texto não quebre */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .custom-file-upload:hover {
@@ -71,46 +60,46 @@ body {
 }
 
 .file-upload-container input[type="file"] {
-  display: none; /* Esconde o input de arquivo padrão */
+  display: none;
 }
 
 .file-name-display {
-  font-size: 0.9em;
-  color: #e0e0e0;
-  max-width: 200px; /* Limita a largura do nome do arquivo */
-  white-space: nowrap;
+  font-size: 0.95em;
+  color: #f0f0f0;
+  max-width: 250px; /* Limita a largura para nomes longos */
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .action-buttons {
   display: flex;
+  gap: 20px;
   flex-wrap: wrap;
-  gap: 15px;
   justify-content: center;
-  align-items: center;
+  width: 100%;
+  max-width: 800px; /* Limita a largura para melhor layout */
 }
 
 .export-button {
   background-color: #007bff; /* Azul para exportar */
   color: white;
-  padding: 10px 20px;
+  padding: 12px 25px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
-  transition: background-color 0.2s ease;
-  display: inline-flex;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 180px; /* Garante largura mínima */
-  justify-content: center;
-  white-space: nowrap; /* Impede que o texto quebre */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Adiciona reticências se o texto for muito longo */
+  gap: 10px;
+  white-space: nowrap; /* Garante que o texto não quebre */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  flex-shrink: 0; /* Impede que o botão encolha */
 }
 
-.export-button:hover {
+.export-button:hover:not(:disabled) {
   background-color: #0056b3;
 }
 
@@ -120,42 +109,55 @@ body {
 }
 
 .overdue-count {
+  background-color: #dc3545; /* Vermelho para o contador */
+  color: white;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 5px;
-  background-color: #dc3545; /* Vermelho */
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 1.1em;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  flex-shrink: 0; /* Impede que o contador encolha */
 }
 
-.overdue-count .count-number {
-  font-size: 1.2em;
-  font-weight: bolder;
+.count-number {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.data-table-container {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-x: auto; /* Permite scroll horizontal na tabela */
+  background-color: #ffffff;
+  margin: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.loading-message, .error-message, .no-data-message {
+  text-align: center;
+  padding: 30px;
+  font-size: 1.1em;
+  color: #555;
 }
 
 .error-message {
   color: #dc3545;
-  margin-top: 20px;
   font-weight: bold;
 }
 
-.data-table-container {
-  overflow-x: auto; /* Permite rolagem horizontal */
-  margin: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  flex-grow: 1; /* Permite que a tabela ocupe o espaço restante */
+.table-wrapper {
+  overflow-x: auto; /* Garante que a tabela interna também tenha scroll */
 }
 
 .data-table {
-  width: 100%; /* Ocupa a largura total do container */
+  width: 100%;
   border-collapse: collapse;
-  min-width: 1800px; /* Aumentado para acomodar mais conteúdo */
+  min-width: 1200px; /* Garante uma largura mínima para a tabela */
 }
 
 .data-table th,
@@ -203,11 +205,6 @@ body {
 }
 
 /* Classe para "FALTA ABONAR" */
-/* Esta classe só será aplicada a células individuais, não a linhas inteiras,
-   pois a lógica de linha já prioriza overdue-strong e due-today.
-   Se uma linha é "FALTA ABONAR" E atrasada, ela será vermelha.
-   Se uma linha é "FALTA ABONAR" e não atrasada/hoje, ela não terá cor de linha específica,
-   mas a célula "Justificativa do Abono" terá roxo. */
 .falta-abonar {
   background-color: #800080 !important; /* Roxo */
   color: white !important; /* Texto branco */
@@ -313,7 +310,7 @@ body {
   background-color: #5a6268;
 }
 
-/* Larguras de colunas específicas */
+/* Larguras de colunas específicas (usando nomes normalizados e escapados para CSS) */
 .col-chamado { width: 100px; }
 .col-numero-referencia { width: 150px; }
 .col-contratante { width: 180px; }
