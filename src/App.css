@@ -1,4 +1,6 @@
-/* Estilos Gerais */
+/* frontend/src/App.css */
+
+/* Estilos gerais */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
@@ -8,341 +10,347 @@ body {
 }
 
 .App {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  text-align: center;
+  padding: 20px;
+  max-width: 100vw;
+  overflow-x: hidden; /* Para evitar rolagem horizontal indesejada no corpo */
 }
 
-/* Cabeçalho */
 .App-header {
-  background-color: #282c34;
-  padding: 20px 40px;
-  color: white;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  margin-bottom: 20px;
+  background-color: #ffffff;
+  padding: 30px 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 25px;
 }
 
 .App-header h1 {
-  margin: 0 0 20px 0;
+  color: #2c3e50;
+  margin: 0;
   font-size: 2.5em;
   font-weight: 600;
 }
 
-/* Contêiner de Botões e Ações */
 .action-buttons-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 25px;
+  gap: 20px;
   width: 100%;
-  max-width: 1200px; /* Limita a largura para melhor organização */
-  margin-top: 20px;
+  max-width: 1200px;
 }
 
 .file-upload-section, .global-actions-section {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-/* Estilo do Input de Arquivo Customizado */
-.custom-file-upload, .process-csv-button, .export-button {
-  background-color: #4472C4; /* Azul primário */
+.custom-file-upload {
+  background-color: #4CAF50; /* Verde */
   color: white;
   padding: 12px 25px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
   font-weight: 500;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 250px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
 }
 
-.custom-file-upload:hover, .process-csv-button:hover, .export-button:hover {
-  background-color: #335a9b; /* Azul mais escuro no hover */
+.custom-file-upload:hover {
+  background-color: #45a049;
   transform: translateY(-1px);
 }
 
-.process-csv-button:disabled, .export-button:disabled {
-  background-color: #a0a0a0;
+.process-csv-button, .export-button {
+  background-color: #007bff; /* Azul */
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+}
+
+.process-csv-button:hover, .export-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.process-csv-button:disabled {
+  background-color: #cccccc;
   cursor: not-allowed;
+  box-shadow: none;
   transform: none;
 }
 
-.file-name-display {
-  color: #f0f0f0;
-  font-size: 0.9em;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Botão de Exportar */
-.export-button {
-  background-color: #21a366; /* Verde Excel */
-}
-
-.export-button:hover {
-  background-color: #1a7a4c;
-}
-
-/* Contador de OSs Atrasadas */
 .overdue-count {
   background-color: #dc3545; /* Vermelho */
   color: white;
   padding: 12px 25px;
   border-radius: 8px;
   font-size: 1em;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 180px;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
 }
 
-.overdue-count .count-number {
-  font-weight: bold;
-  font-size: 1.1em;
-  margin-left: 8px;
-}
-
-/* Campo de Pesquisa */
 .search-container {
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 300px;
-  width: 100%;
 }
 
 .search-input {
-  width: 100%;
-  padding: 10px 10px 10px 40px; /* Espaço para o ícone */
+  padding: 12px 15px 12px 40px; /* Espaço para o ícone */
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1em;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 250px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .search-input:focus {
-  outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  outline: none;
 }
 
 .search-icon {
   position: absolute;
   left: 15px;
   color: #888;
-  font-size: 1.1em;
 }
 
-/* Mensagens de Erro/Carregamento */
 .error-message {
   color: #dc3545;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
-  padding: 10px;
-  border-radius: 5px;
-  margin: 20px auto;
-  max-width: 800px;
-  text-align: center;
-}
-
-.loading-message, .no-data-message {
-  text-align: center;
-  color: #6c757d;
-  font-size: 1.2em;
-  margin-top: 50px;
-}
-
-/* Tabela de Dados */
-.data-table-container {
-  flex-grow: 1;
-  padding: 20px;
-  overflow-x: auto; /* Permite scroll horizontal na tabela */
-}
-
-.table-scroll-wrapper {
-  overflow-x: auto;
-  border: 1px solid #ddd;
+  padding: 10px 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-  background-color: white;
+  margin-top: 20px;
+  font-weight: 500;
+  width: fit-content;
+  max-width: 90%;
+  text-align: center;
+}
+
+.data-table-container {
+  overflow-x: auto; /* Permite rolagem horizontal para a tabela */
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
 }
 
 .data-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 1400px; /* Largura mínima para as colunas mais largas */
+  border-collapse: separate; /* Para bordas arredondadas e espaçamento */
+  border-spacing: 0;
+  min-width: 1400px; /* Largura mínima para a tabela */
 }
 
-.data-table th,
-.data-table td {
+.data-table th, .data-table td {
   padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-  white-space: nowrap;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap; /* Evita quebra de linha nas células */
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .data-table th {
-  background-color: #4472C4; /* Azul escuro */
+  background-color: #4472C4; /* Azul escuro para cabeçalhos */
   color: white;
   font-weight: 600;
   position: sticky;
   top: 0;
   z-index: 10;
+  cursor: pointer;
 }
 
-.data-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+.data-table th:first-child {
+  border-top-left-radius: 8px;
 }
 
-.data-table tbody tr:hover {
-  background-color: #f1f1f1;
+.data-table th:last-child {
+  border-top-right-radius: 8px;
 }
 
-/* Estilos de linha */
-.row-overdue {
-  background-color: #C00000 !important; /* Vermelho Intenso */
-  color: white !important;
+.data-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
-.row-due-today {
-  background-color: #FFC000 !important; /* Amarelo */
-  color: #333 !important; /* Texto escuro para contraste */
-}
-
-/* Estilo para célula "FALTA ABONAR" */
-.cell-falta-abonar {
-  background-color: #800080 !important; /* Roxo Intenso */
-  color: white !important;
-  font-weight: bold;
-}
-
-/* Cabeçalho da Tabela - Conteúdo e Ações */
 .header-content {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
   gap: 5px;
 }
 
-.header-label {
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-actions {
+.sortable-header {
   display: flex;
   align-items: center;
   gap: 5px;
-}
-
-.sort-icons {
-  display: flex;
-  flex-direction: column;
   cursor: pointer;
-  font-size: 0.8em;
-  color: rgba(255, 255, 255, 0.6);
+  flex-grow: 1;
 }
 
-.sort-icons .active {
-  color: white;
+.sort-icon {
+  margin-left: 5px;
+  font-size: 0.8em;
+}
+
+.filter-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; /* Tamanho fixo para o ícone de filtro */
+  height: 24px;
+  cursor: pointer;
+  z-index: 11; /* Acima do dropdown */
 }
 
 .filter-icon {
-  cursor: pointer;
-  font-size: 0.9em;
-  color: rgba(255, 255, 255, 0.6);
-  position: relative; /* Para posicionar o dropdown */
+  color: white;
+  font-size: 1em;
+  transition: color 0.2s ease;
 }
 
 .filter-icon.active {
-  color: white;
+  color: #FFD700; /* Amarelo quando ativo */
 }
 
-/* Dropdown de filtro */
 .filter-dropdown {
   position: absolute;
-  background-color: white;
+  top: 100%; /* Posiciona abaixo do cabeçalho */
+  right: 0;
+  background-color: #ffffff;
   border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 100; /* Garante que fique acima da tabela */
-  padding: 10px;
-  min-width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100; /* Garante que o dropdown fique acima de tudo */
+  min-width: 220px;
   max-height: 300px;
   overflow-y: auto;
+  padding: 15px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
 .filter-options-container {
-  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px; /* Altura máxima para as opções de filtro */
   overflow-y: auto;
-  margin-bottom: 10px;
+  padding-right: 5px; /* Espaço para scrollbar */
 }
 
 .filter-option {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
-  font-size: 0.9em;
+  gap: 8px;
+  font-size: 0.95em;
+  color: #333;
   cursor: pointer;
 }
 
-.filter-option input {
-  margin-right: 8px;
+.filter-option input[type="checkbox"] {
+  cursor: pointer;
+  transform: scale(1.1);
 }
 
 .filter-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  gap: 10px;
   margin-top: 10px;
-  justify-content: space-between;
+  border-top: 1px solid #eee;
+  padding-top: 10px;
 }
 
 .filter-actions button {
-  background-color: #4472C4;
-  color: white;
-  border: none;
+  flex: 1;
   padding: 8px 12px;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85em;
+  font-size: 0.9em;
+  font-weight: 500;
   transition: background-color 0.2s ease;
-  flex-grow: 1;
-  min-width: 48%;
-  box-sizing: border-box;
 }
 
-.filter-actions button:hover {
-  background-color: #335a9b;
+.filter-actions button:first-child {
+  background-color: #28a745; /* Verde para Aplicar */
+  color: white;
+  border: 1px solid #28a745;
 }
 
-/* Larguras de colunas específicas */
-.col-chamado { width: 100px; }
+.filter-actions button:first-child:hover {
+  background-color: #218838;
+}
+
+.filter-actions button:last-child {
+  background-color: #f8f9fa; /* Cinza claro para Limpar */
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.filter-actions button:last-child:hover {
+  background-color: #e2e6ea;
+}
+
+/* Cores das linhas da tabela */
+.row-overdue {
+  background-color: #C00000; /* Vermelho intenso */
+  color: #FFFFFF; /* Texto branco para contraste */
+}
+
+.row-due-today {
+  background-color: #FFC000; /* Amarelo */
+  color: #333; /* Texto escuro para contraste */
+}
+
+/* NOVA CLASSE: Linhas que não estão atrasadas nem vencendo hoje */
+.row-default-blue {
+  background-color: #E0F2F7; /* Azul claro suave */
+  color: #333; /* Texto escuro para contraste */
+}
+
+/* Estilo para a célula "Justificativa do Abono" quando "FALTA ABONAR" */
+/* Usamos !important para garantir que este estilo prevaleça sobre a cor da linha */
+.col-justificativa-do-abono[style*="background-color: rgb(128, 0, 128)"] { /* Seleciona pelo estilo inline */
+  background-color: #800080 !important; /* Roxo intenso */
+  color: #FFFFFF !important; /* Texto branco */
+  font-weight: bold !important;
+}
+
+
+/* Largura das colunas */
+.col-chamado { width: 120px; }
 .col-numero-referencia { width: 150px; }
 .col-contratante { width: 180px; }
 .col-servico { width: 250px; }
