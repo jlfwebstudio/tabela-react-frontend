@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver'; // Para salvar o arquivo Excel
+import { saveAs } from 'file-saver';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSort, faSortUp, faSortDown, faFilter, faSearch, faUpload, faFileExcel } from '@fortawesome/free-solid-svg-icons';
 import './App.css';
@@ -94,7 +94,7 @@ function App() {
     return value; // Retorna o valor original se não for CPF nem CNPJ
   }, []);
 
-  // Função para verificar se a OS está atrasada ou vence hoje
+  // Função para verificar status de data (atrasado, hoje, precisa de abono)
   const getStatusDates = useCallback((row) => {
     const dataLimiteStr = row['Data Limite'];
     const dataLimite = parseDate(dataLimiteStr);
@@ -158,19 +158,6 @@ function App() {
     return '';
   }, [getStatusDates]);
 
-  // Lidar com a seleção de arquivo
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setFileName(file.name);
-      setError('');
-    } else {
-      setSelectedFile(null);
-      setFileName('');
-    }
-  };
-
   // Lidar com o upload do arquivo
   const handleFileUpload = async () => {
     if (!selectedFile) {
@@ -185,6 +172,7 @@ function App() {
     setColumnFilterSelections({}); // Limpa filtros de coluna
     setFilterDropdownOpen(false); // Fecha qualquer dropdown aberto
     setFilterColumn(null); // Reseta a coluna de filtro
+    setSearchTerm(''); // Limpa a pesquisa global
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -318,18 +306,18 @@ function App() {
   }, [filterColumn, filterDropdownOpen, data, columnFilterSelections, normalizeForComparison]);
 
   // Lidar com a seleção/desseleção de opções de filtro
-  const handleFilterOptionChange = useCallback((option) => {
-    setSelectedFilterOptions(prev => {
+  const handleFilterOptionChange = useCallback((option, isChecked) => {
+    setColumnFilterSelections(prev => { // CORREÇÃO: Usar setColumnFilterSelections
       const currentOptions = prev[filterColumn] || [];
-      if (currentOptions.includes(option)) {
+      if (isChecked) {
         return {
           ...prev,
-          [filterColumn]: currentOptions.filter(item => item !== option)
+          [filterColumn]: [...currentOptions, option]
         };
       } else {
         return {
           ...prev,
-          [filterColumn]: [...currentOptions, option]
+          [filterColumn]: currentOptions.filter(item => item !== option)
         };
       }
     });
@@ -342,7 +330,7 @@ function App() {
 
   // Limpar filtros de uma coluna específica
   const clearColumnFilter = useCallback(() => {
-    setColumnFilterSelections(prev => ({
+    setColumnFilterSelections(prev => ({ // CORREÇÃO: Usar setColumnFilterSelections
       ...prev,
       [filterColumn]: [] // Limpa todas as seleções para a coluna atual
     }));
@@ -376,9 +364,6 @@ function App() {
       alert('Nenhum dado para exportar.');
       return;
     }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     // Filtra apenas os itens pendentes de hoje (atrasados e vencendo hoje)
     const pendingTodayData = data.filter(row => {
@@ -414,6 +399,7 @@ function App() {
 
     // Aplica estilos de cor de fundo e cor da fonte
     pendingTodayData.forEach((row, rowIndex) => {
+      // Encontra a linha original para aplicar a lógica de cor
       const originalRow = data.find(original =>
         original['Chamado'] === row['Chamado'] &&
         original['Numero Referencia'] === row['Número Referência']
@@ -436,7 +422,7 @@ function App() {
       // Aplica o estilo de fundo e texto para cada célula da linha
       tableHeaders.forEach((header, colIndex) => {
         const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex }); // +1 para pular o cabeçalho
-        if (!ws[cellRef]) ws[cellRef] = { t: 's', v: '' }; // Garante que a célula exista
+        if (!ws[cellRef]) ws[cellRef] = { t: 's', v: '' }; // Garante que a célula existe
 
         // Estilo da célula de Justificativa do Abono se for "FALTA ABONAR"
         if (header.key === 'Justificativa do Abono' && needsAbono) {
@@ -532,7 +518,7 @@ function App() {
                         <div className="header-actions">
                           {header.sortable && (
                             <span className="sort-icons" onClick={() => handleSort(header.key)}>
-                              <FontAwesomeIcon icon={getSortIcon(header.key)} />
+                              <FontAwesomeIcon icon={sortColumn === header.key && sortDirection === 'asc' ? faSortUp : faSortDown} />
                             </span>
                           )}
                           {header.filterable && (
@@ -575,7 +561,7 @@ function App() {
                 <label key={option} className="filter-option">
                   <input
                     type="checkbox"
-                    checked={columnFilterSelections[filterColumn]?.includes(option) || false}
+                    checked={selectedFilterOptions[filterColumn]?.includes(option) || false}
                     onChange={(e) => handleFilterOptionChange(option, e.target.checked)}
                   />
                   {option}
