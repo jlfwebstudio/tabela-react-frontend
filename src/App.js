@@ -12,9 +12,8 @@ function App() {
   const [tableHeaders, setTableHeaders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // Ajuste aqui: 'asc' para ordenar do mais antigo para o mais recente
   const [sortColumn, setSortColumn] = useState('Data Limite');
-  const [sortDirection, setSortDirection] = useState('asc'); // ALTERADO PARA 'asc'
+  const [sortDirection, setSortDirection] = useState('asc'); // Padrão: crescente (do mais antigo para o mais recente)
   const [searchTerm, setSearchTerm] = useState('');
   const [filterOptions, setFilterOptions] = useState({});
   const [selectedFilterOptions, setSelectedFilterOptions] = useState({
@@ -52,21 +51,24 @@ function App() {
     if (!dateString) return null;
     // Garante que estamos pegando apenas a parte da data antes de dividir
     const datePart = dateString.split(' ')[0];
-    const [day, month, year] = datePart.split('/').map(Number);
-    const date = new Date(year, month - 1, day);
-    date.setHours(0, 0, 0, 0); // Zera a hora para comparações precisas
-    return isNaN(date.getTime()) ? null : date;
+    const parts = datePart.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexado
+      const year = parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0); // Zera a hora para comparações precisas
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
   }, []);
 
   // Função para formatar a data para exibição (apenas DD/MM/YYYY)
   const formatDataLimite = useCallback((dateString) => {
     if (!dateString) return '';
-    const date = parseDateForComparison(dateString);
-    if (date && !isNaN(date)) {
-      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
-    return dateString; // Retorna a string original se não puder ser parseada
-  }, [parseDateForComparison]);
+    // Remove a parte da hora se existir
+    return dateString.split(' ')[0];
+  }, []);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -74,51 +76,61 @@ function App() {
     return d;
   }, []);
 
+  // CORRIGIDO: isOverdue e isDueToday agora recebem a row completa
   const isOverdue = useCallback((row) => {
     const dataLimite = parseDateForComparison(row['Data Limite']);
     if (!dataLimite) return false;
     return dataLimite < today;
   }, [parseDateForComparison, today]);
 
+  // CORRIGIDO: isOverdue e isDueToday agora recebem a row completa
   const isDueToday = useCallback((row) => {
     const dataLimite = parseDateForComparison(row['Data Limite']);
     if (!dataLimite) return false;
     return dataLimite.getTime() === today.getTime();
   }, [parseDateForComparison, today]);
 
+  // CORRIGIDO: Lógica para determinar a classe CSS da linha (cor)
   const getRowClass = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
-    const isAbonar = justificativa === 'falta abonar';
+    const isRowOverdue = isOverdue(row);
+    const isRowDueToday = isDueToday(row);
 
-    // Prioridade para "FALTA ABONAR" se a OS estiver atrasada
-    if (isOverdue(row) && isAbonar) {
-      return 'row-overdue'; // Mantém vermelho para atraso, o estilo da célula roxa prevalecerá
-    } else if (isOverdue(row)) {
+    // Se estiver atrasada E a justificativa for "FALTA ABONAR" (ou vazia), a linha é vermelha
+    if (isRowOverdue && (justificativa === 'falta abonar' || justificativa === '')) {
       return 'row-overdue';
-    } else if (isDueToday(row)) {
-      return 'row-due-today';
-    } else {
-      return 'row-default-blue';
     }
+    // Se estiver atrasada (e não for "FALTA ABONAR"), a linha é vermelha
+    if (isRowOverdue) {
+      return 'row-overdue';
+    }
+    // Se vence hoje, a linha é amarela
+    if (isRowDueToday) {
+      return 'row-due-today';
+    }
+    // Caso contrário, é azul padrão
+    return 'row-default-blue';
   }, [isOverdue, isDueToday, normalizeForComparison]);
 
+  // CORRIGIDO: Lógica para determinar o estilo da célula "Justificativa do Abono"
   const getJustificativaCellStyle = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
-    const isAbonar = justificativa === 'falta abonar';
     const isRowOverdue = isOverdue(row);
 
-    if (isRowOverdue && isAbonar) {
+    // Aplica roxo intenso se estiver atrasado E a justificativa for "FALTA ABONAR" (ou vazia)
+    if (isRowOverdue && (justificativa === 'falta abonar' || justificativa === '')) {
       return { backgroundColor: '#800080', color: '#FFFFFF', fontWeight: 'bold' }; // Roxo intenso
     }
     return {};
   }, [isOverdue, normalizeForComparison]);
 
+  // CORRIGIDO: Lógica para determinar o texto da célula "Justificativa do Abono"
   const getJustificativaCellText = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
-    const isAbonar = justificativa === 'falta abonar';
     const isRowOverdue = isOverdue(row);
 
-    if (isRowOverdue && isAbonar) {
+    // Exibe "FALTA ABONAR" se estiver atrasado E a justificativa for "FALTA ABONAR" (ou vazia)
+    if (isRowOverdue && (justificativa === 'falta abonar' || justificativa === '')) {
       return 'FALTA ABONAR';
     }
     return row['Justificativa do Abono'];
@@ -128,7 +140,7 @@ function App() {
   // Efeito para fechar o dropdown de filtro ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) && !event.target.closest('.filter-icon')) {
         setActiveFilterColumn(null);
       }
     };
@@ -138,16 +150,24 @@ function App() {
     };
   }, []);
 
-  // Função para lidar com o upload do arquivo
-  const handleFileChange = (event) => {
+  // Função para lidar com a seleção do arquivo
+  const handleFileChange = useCallback((event) => {
     setFile(event.target.files[0]);
-    // Ao carregar um novo arquivo, resetar a ordenação para o padrão
+    setError('');
+    // Resetar estados relevantes ao selecionar novo arquivo
+    setData([]);
+    setTableHeaders(defaultTableHeaders);
     setSortColumn('Data Limite');
     setSortDirection('asc'); // Manter 'asc' para o novo padrão
-  };
+    setSearchTerm('');
+    setActiveFilterColumn(null);
+    setSelectedFilterOptions({
+      'Status': ['ENCAMINHADA', 'EM TRANSFERÊNCIA', 'EM CAMPO', 'REENCAMINHADO', 'PROCEDIMENTO TÉCNICO']
+    });
+  }, [defaultTableHeaders]);
 
   // Função para processar o CSV
-  const processCsv = async () => {
+  const handleUpload = useCallback(async () => {
     if (!file) {
       setError('Por favor, selecione um arquivo CSV.');
       return;
@@ -155,9 +175,8 @@ function App() {
 
     setLoading(true);
     setError('');
-    setData([]); // Limpa os dados anteriores
-    setTableHeaders([]); // Limpa os cabeçalhos anteriores
-    setFilterOptions({}); // Limpa as opções de filtro
+    setData([]);
+    setTableHeaders(defaultTableHeaders);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -197,9 +216,14 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [file, backendUrl, defaultTableHeaders]);
 
-  // Função para alternar a direção da ordenação
+  // Função para lidar com a mudança no termo de busca global
+  const handleSearchChange = useCallback((event) => {
+    setSearchTerm(event.target.value);
+  }, []);
+
+  // Função para lidar com a ordenação da tabela
   const handleSort = useCallback((column) => {
     setSortDirection(prevDirection =>
       column === sortColumn ? (prevDirection === 'asc' ? 'desc' : 'asc') : 'asc'
@@ -213,47 +237,43 @@ function App() {
   }, []);
 
   // Função para lidar com a seleção de opções de filtro
-  const handleFilterOptionChange = useCallback((header, option) => {
+  const handleFilterOptionChange = useCallback((header, option, isChecked) => {
     setSelectedFilterOptions(prevSelected => {
       const currentOptions = prevSelected[header] || [];
-      if (currentOptions.includes(option)) {
-        return {
-          ...prevSelected,
-          [header]: currentOptions.filter(item => item !== option)
-        };
+      if (isChecked) {
+        return { ...prevSelected, [header]: [...currentOptions, option] };
       } else {
-        return {
-          ...prevSelected,
-          [header]: [...currentOptions, option]
-        };
+        return { ...prevSelected, [header]: currentOptions.filter(item => item !== option) };
       }
     });
   }, []);
 
-  // Função para aplicar o filtro de coluna
+  // Função para aplicar os filtros selecionados (fecha o dropdown)
   const applyColumnFilter = useCallback(() => {
-    setActiveFilterColumn(null); // Fecha o dropdown após aplicar
+    setActiveFilterColumn(null);
   }, []);
 
   // Função para limpar o filtro de coluna
   const clearColumnFilter = useCallback((header) => {
     setSelectedFilterOptions(prevSelected => ({
       ...prevSelected,
-      [header]: [] // Limpa todas as opções selecionadas para esta coluna
+      [header]: []
     }));
-    setActiveFilterColumn(null); // Fecha o dropdown após limpar
+    setActiveFilterColumn(null);
   }, []);
 
   // Filtra e ordena os dados
   const filteredAndSortedData = useMemo(() => {
-    let currentData = data;
+    if (!data || data.length === 0) return [];
+
+    let currentData = [...data];
 
     // 1. Aplica filtros de coluna (incluindo o filtro padrão de Status)
     Object.keys(selectedFilterOptions).forEach(header => {
       const selectedOptions = selectedFilterOptions[header];
       if (selectedOptions && selectedOptions.length > 0) {
         currentData = currentData.filter(row =>
-          selectedOptions.includes(row[header])
+          selectedOptions.some(option => normalizeForComparison(row[header]) === normalizeForComparison(option))
         );
       }
     });
@@ -301,7 +321,7 @@ function App() {
     }
 
     return currentData;
-  }, [data, selectedFilterOptions, searchTerm, sortColumn, sortDirection, normalizeForComparison, parseDateForComparison]);
+  }, [data, selectedFilterOptions, searchTerm, sortColumn, sortDirection, normalizeForComparison, parseDateForComparison, tableHeaders]);
 
   // Conta os itens atrasados e vencendo hoje
   const overdueAndDueTodayCount = useMemo(() => {
@@ -343,8 +363,7 @@ function App() {
     for (let R = 1; R <= dataToExport.length; ++R) {
       const rowData = dataToExport[R - 1];
       const rowClass = getRowClass(rowData); // Obtém a classe da linha para determinar a cor de fundo
-      const isAbonar = normalizeForComparison(rowData['Justificativa do Abono']) === 'falta abonar';
-      const isRowOverdue = isOverdue(rowData);
+      const justificativaText = getJustificativaCellText(rowData); // Obtém o texto formatado
 
       tableHeaders.forEach((header, C) => {
         const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
@@ -373,7 +392,7 @@ function App() {
           }
 
           // Sobrescreve para "FALTA ABONAR" se aplicável
-          if (header === 'Justificativa do Abono' && isRowOverdue && isAbonar) {
+          if (header === 'Justificativa do Abono' && justificativaText === 'FALTA ABONAR') {
             cellStyle.fill = { fgColor: { rgb: "FF800080" } }; // Roxo intenso
             cellStyle.font = { color: { rgb: "FFFFFFFF" }, bold: true }; // Texto branco e negrito
           }
@@ -425,8 +444,8 @@ function App() {
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pendentes Hoje");
-    XLSX.writeFile(wb, "PendentesHoje.xlsx");
-  }, [filteredAndSortedData, tableHeaders, getRowClass, normalizeForComparison, isOverdue, formatDataLimite, isDueToday]);
+    XLSX.writeFile(wb, `PendentesHoje_${todayFormatted}.xlsx`); // Adicionado data ao nome do arquivo
+  }, [filteredAndSortedData, tableHeaders, getRowClass, normalizeForComparison, isOverdue, formatDataLimite, isDueToday, today]);
 
 
   return (
@@ -436,15 +455,31 @@ function App() {
         <div className="action-buttons-container">
           <div className="file-upload-section">
             <label htmlFor="file-upload" className="custom-file-upload">
-              <FontAwesomeIcon icon={faUpload} /> Selecionar CSV
+              <FontAwesomeIcon icon={faUpload} /> {file ? file.name : 'Selecionar CSV'}
             </label>
-            <input id="file-upload" type="file" accept=".csv" onChange={handleFileChange} />
-            {file && <span className="file-name">{file.name}</span>}
-            <button onClick={processCsv} disabled={!file || loading} className="process-csv-button">
+            <input
+              id="file-upload"
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            <button onClick={handleUpload} disabled={!file || loading} className="process-csv-button">
               <FontAwesomeIcon icon={faUpload} /> {loading ? 'Processando...' : 'Processar CSV'}
             </button>
           </div>
+
           <div className="global-actions-section">
+            <div className="search-container">
+              <FontAwesomeIcon icon={faSearch} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Pesquisar na tabela..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="search-input"
+              />
+            </div>
             <div className="overdue-count">
               Pendentes Hoje: {overdueAndDueTodayCount}
             </div>
@@ -458,52 +493,39 @@ function App() {
 
       {data.length > 0 && (
         <div className="data-table-container">
-          <div className="search-container">
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Pesquisar na tabela..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
           <table className="data-table">
             <thead>
               <tr>
                 {tableHeaders.map(header => (
                   <th key={header}>
-                    <div className="header-content">
-                      <div className="sortable-header" onClick={() => handleSort(header)}>
+                    <div className="th-content">
+                      <span onClick={() => handleSort(header)} className="sortable-header">
                         {header}
-                        {sortColumn === header && (
-                          <FontAwesomeIcon
-                            icon={sortDirection === 'asc' ? faSortUp : faSortDown}
-                            className="sort-icon"
-                          />
+                        {sortColumn === header ? (
+                          sortDirection === 'asc' ? (
+                            <FontAwesomeIcon icon={faSortUp} className="sort-icon" />
+                          ) : (
+                            <FontAwesomeIcon icon={faSortDown} className="sort-icon" />
+                          )
+                        ) : (
+                          <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
                         )}
-                        {sortColumn !== header && (
-                          <FontAwesomeIcon
-                            icon={faSort}
-                            className="sort-icon inactive"
-                          />
-                        )}
-                      </div>
+                      </span>
                       <div className="filter-container" ref={activeFilterColumn === header ? filterDropdownRef : null}>
                         <FontAwesomeIcon
                           icon={faFilter}
-                          className={`filter-icon ${activeFilterColumn === header ? 'active' : ''}`}
+                          className={`filter-icon ${activeFilterColumn === header || (selectedFilterOptions[header] && selectedFilterOptions[header].length > 0) ? 'active' : ''}`}
                           onClick={() => toggleFilterDropdown(header)}
                         />
                         {activeFilterColumn === header && filterOptions[header] && (
-                          <div className="filter-dropdown">
+                          <div className="filter-dropdown" onClick={(e) => e.stopPropagation()}>
                             <div className="filter-options-container">
                               {filterOptions[header].map(option => (
                                 <label key={option} className="filter-option">
                                   <input
                                     type="checkbox"
                                     checked={(selectedFilterOptions[header] || []).includes(option)}
-                                    onChange={() => handleFilterOptionChange(header, option)}
+                                    onChange={() => handleFilterOptionChange(header, option, true)}
                                   />
                                   {option}
                                 </label>
