@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSortUp, faSortDown, faFilter, faSearch, faUpload, faFileExcel, faSort } from '@fortawesome/free-solid-svg-icons'; // Adicionado faSort
+import { faSortUp, faSortDown, faFilter, faSearch, faUpload, faFileExcel, faSort } from '@fortawesome/free-solid-svg-icons';
 import './App.css';
 
 function App() {
@@ -13,7 +13,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [sortColumn, setSortColumn] = useState('Data Limite');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [sortDirection, setSortDirection] = useState('desc'); // ALTERADO: Ordenar do mais atrasado para o com mais prazo
   const [searchTerm, setSearchTerm] = useState('');
   const [filterOptions, setFilterOptions] = useState({});
   const [selectedFilterOptions, setSelectedFilterOptions] = useState({
@@ -49,19 +49,25 @@ function App() {
   // Função para parsear a data no formato DD/MM/YYYY para um objeto Date
   const parseDateForComparison = useCallback((dateString) => {
     if (!dateString) return null;
-    const [day, month, year] = dateString.split('/').map(Number);
-    const date = new Date(year, month - 1, day);
-    return isNaN(date.getTime()) ? null : date;
+    // Remove a parte da hora se existir (ex: "29/09/2025 16:00:00" -> "29/09/2025")
+    const dateOnlyString = dateString.split(' ')[0];
+    const parts = dateOnlyString.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexado
+      const year = parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
   }, []);
 
+  // ALTERADO: Função para formatar a Data Limite para exibição (apenas DD/MM/YYYY)
   const formatDataLimite = useCallback((dateString) => {
     if (!dateString) return '';
-    const date = parseDateForComparison(dateString);
-    if (date && !isNaN(date)) {
-      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
-    return dateString;
-  }, [parseDateForComparison]);
+    // Remove a parte da hora se existir
+    return dateString.split(' ')[0];
+  }, []);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -81,31 +87,47 @@ function App() {
     return dataLimite.getTime() === today.getTime();
   }, [parseDateForComparison, today]);
 
+  // CORRIGIDO: Lógica para determinar a classe CSS da linha (cor)
   const getRowClass = useCallback((row) => {
-    if (isOverdue(row)) {
-      return 'row-overdue';
-    } else if (isDueToday(row)) {
-      return 'row-due-today';
-    } else {
-      return 'row-default-blue';
-    }
-  }, [isOverdue, isDueToday]);
+    const justificativa = normalizeForComparison(row['Justificativa do Abono']);
+    const isRowOverdue = isOverdue(row);
+    const isRowDueToday = isDueToday(row);
 
+    // Se estiver atrasada E a justificativa for "FALTA ABONAR" (ou vazia), a linha é vermelha
+    if (isRowOverdue && (justificativa === 'falta abonar' || justificativa === '')) {
+      return 'row-overdue';
+    }
+    // Se estiver atrasada (e não for "FALTA ABONAR"), a linha é vermelha
+    if (isRowOverdue) {
+      return 'row-overdue';
+    }
+    // Se vence hoje, a linha é amarela
+    if (isRowDueToday) {
+      return 'row-due-today';
+    }
+    // Caso contrário, é azul padrão
+    return 'row-default-blue';
+  }, [isOverdue, isDueToday, normalizeForComparison]);
+
+  // CORRIGIDO: Lógica para determinar o estilo da célula "Justificativa do Abono"
   const getJustificativaCellStyle = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
     const isRowOverdue = isOverdue(row);
 
-    if (isRowOverdue && justificativa === 'falta abonar') {
+    // Aplica roxo intenso se estiver atrasado E a justificativa for "FALTA ABONAR" (ou vazia)
+    if (isRowOverdue && (justificativa === 'falta abonar' || justificativa === '')) {
       return { backgroundColor: '#800080', color: '#FFFFFF', fontWeight: 'bold' }; // Roxo intenso
     }
     return {};
   }, [isOverdue, normalizeForComparison]);
 
+  // CORRIGIDO: Lógica para determinar o texto da célula "Justificativa do Abono"
   const getJustificativaCellText = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
     const isRowOverdue = isOverdue(row);
 
-    if (isRowOverdue && justificativa === 'falta abonar') {
+    // Exibe "FALTA ABONAR" se estiver atrasado E a justificativa for "FALTA ABONAR" (ou vazia)
+    if (isRowOverdue && (justificativa === 'falta abonar' || justificativa === '')) {
       return 'FALTA ABONAR';
     }
     return row['Justificativa do Abono'];
@@ -114,11 +136,10 @@ function App() {
   const handleFileChange = useCallback((event) => {
     setFile(event.target.files[0]);
     setError('');
-    // Resetar estados relevantes ao selecionar novo arquivo
     setData([]);
-    setTableHeaders(defaultTableHeaders); // Define os cabeçalhos padrão imediatamente
+    setTableHeaders(defaultTableHeaders);
     setSortColumn('Data Limite');
-    setSortDirection('asc');
+    setSortDirection('desc'); // ALTERADO: Ordenação inicial
     setSearchTerm('');
     setActiveFilterColumn(null);
     setSelectedFilterOptions({
@@ -135,7 +156,7 @@ function App() {
     setLoading(true);
     setError('');
     setData([]);
-    setTableHeaders(defaultTableHeaders); // Garante que os cabeçalhos padrão estejam definidos
+    setTableHeaders(defaultTableHeaders);
 
     const formData = new FormData();
     formData.append('file', file);
@@ -153,7 +174,6 @@ function App() {
 
       const result = await response.json();
       if (result.length > 0) {
-        // Atualiza tableHeaders com base nos dados reais, mas mantém a ordem de defaultTableHeaders
         const actualHeaders = Object.keys(result[0]);
         const orderedHeaders = defaultTableHeaders.filter(header => actualHeaders.includes(header));
         setTableHeaders(orderedHeaders);
@@ -169,7 +189,6 @@ function App() {
     }
   }, [file, backendUrl, defaultTableHeaders]);
 
-  // Efeito para gerar opções de filtro quando os dados ou cabeçalhos mudam
   useEffect(() => {
     if (data.length > 0 && tableHeaders.length > 0) {
       const newFilterOptions = {};
@@ -184,7 +203,7 @@ function App() {
       });
       setFilterOptions(newFilterOptions);
     } else {
-      setFilterOptions({}); // Limpa as opções se não houver dados
+      setFilterOptions({});
     }
   }, [data, tableHeaders]);
 
@@ -228,7 +247,6 @@ function App() {
     setActiveFilterColumn(null);
   }, []);
 
-  // Fechar dropdown de filtro ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) && !event.target.closest('.filter-icon')) {
@@ -554,7 +572,7 @@ function App() {
                       {header === 'Justificativa do Abono'
                         ? getJustificativaCellText(row)
                         : header === 'Data Limite'
-                          ? formatDataLimite(row[header])
+                          ? formatDataLimite(row['Data Limite']) // Passa a string original para formatDataLimite
                           : row[header]}
                     </td>
                   ))}
