@@ -164,6 +164,10 @@ function App() {
 
       // Filtra os dados para incluir apenas os status permitidos
       const processedData = rawData.filter(row => {
+        const statusValue = row['Status'];
+        if (statusValue === undefined || statusValue === null) {
+          return false; // Ignora linhas onde a coluna 'Status' não existe ou é nula
+        }
         const status = normalizeStatusValue(row['Status']);
         return allowedStatuses.includes(status);
       });
