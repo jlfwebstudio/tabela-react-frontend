@@ -4,45 +4,46 @@ body {
   margin: 0;
   background-color: #f4f7f6;
   color: #333;
+  line-height: 1.6;
 }
 
 .App {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .App-header {
-  background-color: #4472C4; /* Azul mais escuro */
-  padding: 20px;
+  background-color: #282c34;
+  padding: 25px 20px;
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
 }
 
 .App-header h1 {
   margin: 0;
-  font-size: 2.2em;
+  font-size: 2.5em;
   font-weight: 600;
 }
 
-/* Contêiner de Upload e Ações */
 .file-upload-container {
   display: flex;
-  flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 20px; /* Espaçamento entre os itens */
-  width: 100%;
-  max-width: 1200px; /* Limita a largura para melhor layout */
+  gap: 10px;
 }
 
 .custom-file-upload {
-  background-color: #007bff; /* Azul padrão */
+  background-color: #007bff;
   color: white;
   padding: 12px 20px;
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
@@ -122,6 +123,7 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: white;
+  flex-grow: 1; /* Permite que a tabela ocupe o espaço restante */
 }
 
 .data-table {
@@ -164,22 +166,27 @@ body {
 }
 
 /* Classes para cores das linhas */
+/* NOVO: Vermelho intenso para TODOS atrasados, incluindo "FALTA ABONAR" */
 .overdue-strong {
-  background-color: #FF0000 !important; /* Vermelho forte para TODOS atrasados */
+  background-color: #FF0000 !important; /* Vermelho forte */
   color: white !important; /* Texto branco para contraste */
 }
 
+/* Amarelo para hoje */
 .due-today {
-  background-color: #FFFF00 !important; /* Amarelo para hoje */
+  background-color: #FFFF00 !important; /* Amarelo */
   color: #333 !important; /* Texto escuro para contraste */
 }
 
-/* Classe para "FALTA ABONAR" */
+/* A classe .falta-abonar não será mais usada para cor de fundo da linha,
+   pois .overdue-strong já cobre os casos de atraso.
+   Mantemos a definição caso haja algum uso específico em célula, mas a prioridade é a linha. */
 .falta-abonar {
-  background-color: #800080 !important; /* Roxo */
-  color: white !important; /* Texto branco */
+  /* background-color: #800080 !important; */ /* Roxo - Removido para priorizar vermelho intenso */
+  /* color: white !important; */
   font-weight: bold;
 }
+
 
 /* Estilos para o cabeçalho da tabela com filtros e ordenação */
 .header-content {
@@ -281,12 +288,18 @@ body {
 }
 
 /* Larguras de colunas específicas */
+.col-chamado { width: 100px; }
 .col-numero-referencia { width: 150px; }
-.col-cnpj-cpf { width: 180px; }
-.col-cidade { width: 150px; }
+.col-contratante { width: 180px; }
 .col-servico { width: 250px; }
-.col-tecnico { width: 250px; }
-.col-justificativa { width: 300px; }
+.col-status { width: 150px; }
+.col-data-limite { width: 120px; }
+.col-cliente { width: 180px; }
+.col-cnpj-\/\-cpf { width: 180px; } /* Escapado para o CSS */
+.col-cidade { width: 150px; }
+.col-tecnico { width: 200px; }
+.col-prestador { width: 180px; }
+.col-justificativa-do-abono { width: 300px; }
 
 
 /* Responsividade */
