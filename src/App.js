@@ -154,7 +154,7 @@ function App() {
     setFile(event.target.files[0]);
     setError('');
     setData([]);
-    setTableHeaders([]);
+    setTableHeaders([]); // Limpa os cabeçalhos para que sejam redefinidos após o upload
     setSortColumn('Data Limite');
     setSortDirection('asc');
     setSearchTerm('');
@@ -189,7 +189,7 @@ function App() {
 
       const result = await response.json();
       if (result.length > 0) {
-        setTableHeaders(defaultTableHeaders);
+        setTableHeaders(defaultTableHeaders); // Define os cabeçalhos padrão
         setData(result);
 
         const newFilterOptions = {};
@@ -309,7 +309,7 @@ function App() {
     return sortedData;
   }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, tableHeaders, normalizeForComparison, parseDateForComparison]);
 
-  // Renomeado para refletir o uso no JSX
+  // CORREÇÃO: Renomeado para corresponder ao uso no JSX
   const overdueAndDueTodayCount = useMemo(() => {
     return filteredAndSortedData.filter(row => isOverdue(row) || isDueToday(row)).length;
   }, [filteredAndSortedData, isOverdue, isDueToday]);
