@@ -97,8 +97,6 @@ function App() {
 
   // Determina a classe CSS da linha com base no status e data
   const getRowClass = useCallback((row) => {
-    // A lógica de "Falta Abonar" é para a célula, não para a linha inteira.
-    // A cor da linha é determinada apenas por "atrasado" ou "vencendo hoje".
     if (isOverdue(row)) {
       return 'row-overdue'; // Vermelho intenso para atrasado
     }
@@ -334,7 +332,7 @@ function App() {
 
     // Definir estilos para os cabeçalhos (linha 1 do Excel)
     const headerStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
+      font: { name: "Calibri", sz: 12, bold: true, color: { rgb: "FFFFFF" } }, // Fonte Calibri, tamanho 12
       fill: { fgColor: { rgb: "4472C4" } }, // Azul escuro para cabeçalhos, correspondendo ao CSS
       alignment: { horizontal: "center", vertical: "center" },
       border: {
@@ -348,7 +346,7 @@ function App() {
     // Aplicar estilos aos cabeçalhos
     tableHeaders.forEach((header, index) => {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: index }); // r: 0 para a primeira linha (cabeçalhos)
-      if (!ws[cellAddress]) ws[cellAddress] = {}; // Garante que a célula exista
+      if (!ws[cellAddress]) ws[cellAddress] = { v: header }; // Garante que a célula exista e tenha o valor do cabeçalho
       ws[cellAddress].s = headerStyle;
     });
 
@@ -365,63 +363,58 @@ function App() {
 
         // Estilo padrão para a célula
         let cellStyle = {
+          font: { name: "Calibri", sz: 12, color: { rgb: "000000" } }, // Fonte Calibri, tamanho 12, texto preto padrão
           border: {
             top: { style: "thin", color: { rgb: "000000" } },
             bottom: { style: "thin", color: { rgb: "000000" } },
             left: { style: "thin", color: { rgb: "000000" } },
             right: { style: "thin", color: { rgb: "000000" } },
           },
-          alignment: { vertical: "center" } // Alinhamento vertical padrão
+          alignment: { vertical: "center", wrapText: false } // Alinhamento vertical padrão, sem quebra de texto
         };
 
         // Aplicar cor de fundo da linha
         if (rowClass === 'row-overdue') {
           cellStyle.fill = { fgColor: { rgb: "C00000" } }; // Vermelho intenso
-          cellStyle.font = { color: { rgb: "FFFFFF" } }; // Texto branco
+          cellStyle.font.color = { rgb: "FFFFFF" }; // Texto branco
         } else if (rowClass === 'row-due-today') {
           cellStyle.fill = { fgColor: { rgb: "FFC000" } }; // Amarelo
-          cellStyle.font = { color: { rgb: "000000" } }; // Texto preto
+          cellStyle.font.color = { rgb: "000000" }; // Texto preto
         } else {
           cellStyle.fill = { fgColor: { rgb: "E0F2F7" } }; // Azul claro
-          cellStyle.font = { color: { rgb: "000000" } }; // Texto preto
+          cellStyle.font.color = { rgb: "000000" }; // Texto preto
         }
 
         // Aplicar estilo específico para "Justificativa do Abono" se for "FALTA ABONAR"
         // Este estilo deve sobrescrever a cor de fundo da linha
         if (header === 'Justificativa do Abono' && isAbonarCell) {
           cellStyle.fill = { fgColor: { rgb: "800080" } }; // Roxo intenso
-          cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true }; // Texto branco e negrito
+          cellStyle.font.color = { rgb: "FFFFFF" }; // Texto branco
+          cellStyle.font.bold = true; // Negrito
           cellValue = 'FALTA ABONAR'; // Garante que o texto seja "FALTA ABONAR" no Excel
         }
 
         // Formatação específica para CNPJ / CPF como texto
         if (header === 'CNPJ / CPF') {
           cellStyle.numFmt = '@'; // Formato de texto
+          cellStyle.alignment.horizontal = "left"; // Alinhar à esquerda para texto
           // Remover o '=' e as aspas se existirem, e garantir que seja apenas dígitos
           if (typeof cellValue === 'string') {
             cellValue = cellValue.replace(/['"=]/g, '').trim();
           }
-        }
-
-        // Formatação específica para Data Limite como data
-        if (header === 'Data Limite') {
+        } else if (header === 'Data Limite') {
+          // Formatação específica para Data Limite como data
           const formattedDate = formatDataLimite(cellValue);
           if (formattedDate) {
-            // Para que o Excel reconheça como data, é melhor passar o valor numérico da data
-            // e aplicar o formato de número de data.
             const dateObj = parseDateForComparison(cellValue);
             if (dateObj) {
-              // XLSX.SSF.parse_date_code(dateObj) retorna um número de série do Excel
-              // ou podemos usar uma função auxiliar para converter Date para número de série do Excel
-              // O número de série do Excel para 1900-01-01 é 1.
-              // A diferença em dias entre 1900-01-01 e a data atual.
-              const excelDate = Math.floor(dateObj.getTime() / (1000 * 60 * 60 * 24) + 25569); // 25569 é o offset para 1970-01-01
+              const excelDate = Math.floor(dateObj.getTime() / (1000 * 60 * 60 * 24) + 25569);
               ws[cellAddress] = { v: excelDate, t: 'n', s: { ...cellStyle, numFmt: 'DD/MM/YYYY' } };
             } else {
-              ws[cellAddress] = { v: formattedDate, t: 's', s: cellStyle }; // Se não for uma data válida, mantém como string
+              ws[cellAddress] = { v: formattedDate, t: 's', s: cellStyle };
             }
           } else {
-            ws[cellAddress] = { v: cellValue, t: 's', s: cellStyle }; // Se não puder ser formatado, mantém o valor original como string
+            ws[cellAddress] = { v: cellValue, t: 's', s: cellStyle };
           }
         } else {
           // Para outras células, atribui o valor e o estilo
@@ -429,6 +422,7 @@ function App() {
           ws[cellAddress].v = cellValue;
           ws[cellAddress].s = cellStyle;
           ws[cellAddress].t = typeof cellValue === 'number' ? 'n' : 's'; // Define o tipo da célula (number ou string)
+          cellStyle.alignment.horizontal = "left"; // Alinhar texto à esquerda por padrão
         }
       }
     }
@@ -440,17 +434,35 @@ function App() {
       else if (header === 'Justificativa do Abono') width = 40;
       else if (header === 'Contratante' || header === 'Cliente' || header === 'Técnico' || header === 'Prestador') width = 25;
       else if (header === 'CNPJ / CPF') width = 20;
-      else if (header === 'Numero Referencia') width = 18; // Ajuste para Numero Referencia
-      else if (header === 'Chamado') width = 15; // Ajuste para Chamado
-      else if (header === 'Status') width = 18; // Ajuste para Status
-      else if (header === 'Cidade') width = 18; // Ajuste para Cidade
-      else if (header === 'Data Limite') width = 15; // Ajuste para Data Limite
+      else if (header === 'Numero Referencia') width = 18;
+      else if (header === 'Chamado') width = 15;
+      else if (header === 'Status') width = 18;
+      else if (header === 'Cidade') width = 18;
+      else if (header === 'Data Limite') width = 15;
       return { wch: width };
     });
     ws['!cols'] = wscols;
 
+    // Adicionar AutoFiltro
+    ws['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(tableHeaders.length - 1)}${filteredForExport.length + 1}` };
+
+    // Congelar a primeira linha (cabeçalhos)
+    ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft', state: 'frozen' };
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pendentes");
+
+    // Definir cor da aba (sheet tab)
+    if (!wb.Workbook) wb.Workbook = {};
+    if (!wb.Workbook.Views) wb.Workbook.Views = [];
+    if (!wb.Workbook.Views[0]) wb.Workbook.Views[0] = {};
+    wb.Workbook.Views[0].TabRatio = 600; // Ajusta a proporção da aba
+    if (!wb.Workbook.Sheets) wb.Workbook.Sheets = [];
+    wb.Workbook.Sheets[0] = {
+      ...wb.Workbook.Sheets[0],
+      TabColor: { rgb: "4472C4" } // Cor azul escuro para a aba
+    };
+
     XLSX.writeFile(wb, `Pendentes_Hoje_${todayFormatted}.xlsx`);
   }, [filteredAndSortedData, isOverdue, isDueToday, tableHeaders, getRowClass, normalizeForComparison, formatDataLimite, parseDateForComparison, todayFormatted]);
 
