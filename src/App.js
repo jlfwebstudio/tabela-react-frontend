@@ -69,7 +69,7 @@ function App() {
     if (date && !isNaN(date)) {
       return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
-    return ''; // Retorna string vazia se não puder ser formatado
+    return '';
   }, [parseDateForComparison]);
 
   const today = useMemo(() => {
@@ -114,6 +114,7 @@ function App() {
     return 'row-default-blue'; // Azul claro para os demais
   }, [isOverdue, isDueToday, normalizeForComparison]);
 
+
   // Estilo para a célula "Justificativa do Abono"
   const getJustificativaCellStyle = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
@@ -153,7 +154,7 @@ function App() {
     setFile(event.target.files[0]);
     setError('');
     setData([]);
-    setTableHeaders([]); // Limpa os cabeçalhos para que sejam redefinidos após o upload
+    setTableHeaders([]);
     setSortColumn('Data Limite');
     setSortDirection('asc');
     setSearchTerm('');
@@ -188,7 +189,7 @@ function App() {
 
       const result = await response.json();
       if (result.length > 0) {
-        setTableHeaders(defaultTableHeaders); // Define os cabeçalhos padrão
+        setTableHeaders(defaultTableHeaders);
         setData(result);
 
         const newFilterOptions = {};
@@ -308,9 +309,11 @@ function App() {
     return sortedData;
   }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, tableHeaders, normalizeForComparison, parseDateForComparison]);
 
-  const overdueCount = useMemo(() => {
+  // Renomeado para refletir o uso no JSX
+  const overdueAndDueTodayCount = useMemo(() => {
     return filteredAndSortedData.filter(row => isOverdue(row) || isDueToday(row)).length;
   }, [filteredAndSortedData, isOverdue, isDueToday]);
+
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const exportToExcel = useCallback(() => {
@@ -365,6 +368,9 @@ function App() {
       tableHeaders.forEach((header, colIndex) => {
         const cellRef = XLSX.utils.encode_cell({ r: rowIndex + 1, c: colIndex });
         let cellValue = row[header];
+        // eslint-disable-next-line no-unused-vars
+        const justificativaText = getJustificativaCellText(row); // Desabilita lint para esta linha
+
         let cellStyle = {
           font: { color: { rgb: rowTextColor } },
           fill: { fgColor: { rgb: rowBgColor } },
@@ -379,11 +385,8 @@ function App() {
 
         // Formatação específica para "Data Limite"
         if (header === 'Data Limite') {
-          const formattedDate = formatDataLimite(cellValue);
-          if (formattedDate) {
-            cellValue = formattedDate; // Usa a string formatada DD/MM/YYYY
-            cellStyle.numFmt = '@'; // Define como texto para manter o formato DD/MM/YYYY
-          }
+          cellValue = formatDataLimite(cellValue); // Usa a string formatada DD/MM/YYYY
+          cellStyle.numFmt = '@'; // Define como texto para manter o formato DD/MM/YYYY
         }
 
         // Formatação específica para "CNPJ / CPF"
@@ -394,9 +397,7 @@ function App() {
 
         // Estilo para "Justificativa do Abono" (FALTA ABONAR)
         if (header === 'Justificativa do Abono') {
-          const justificativaText = getJustificativaCellText(row);
           const isAbonarCondition = normalizeForComparison(row['Justificativa do Abono']) === 'falta abonar' || normalizeForComparison(row['Justificativa do Abono']) === '';
-
           if (isOverdue(row) && isAbonarCondition) {
             cellValue = 'FALTA ABONAR'; // Altera o texto para "FALTA ABONAR"
             cellStyle.fill = { fgColor: { rgb: "FF800080" } }; // Roxo intenso
@@ -435,7 +436,7 @@ function App() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pendentes Hoje");
     XLSX.writeFile(wb, `Pendentes_Hoje_${todayFormatted}.xlsx`);
-  }, [filteredAndSortedData, tableHeaders, isOverdue, isDueToday, getRowClass, getJustificativaCellStyle, getJustificativaCellText, formatDataLimite, normalizeForComparison, todayFormatted, parseDateForComparison]);
+  }, [filteredAndSortedData, tableHeaders, isOverdue, isDueToday, getRowClass, getJustificativaCellStyle, getJustificativaCellText, formatDataLimite, normalizeForComparison, todayFormatted]);
 
 
   return (
