@@ -1,45 +1,42 @@
 /* frontend/src/App.css */
-
-/* Estilos gerais */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  background-color: #f4f7f6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f7f6; /* Cor de fundo suave */
   color: #333;
-  line-height: 1.6;
 }
 
 .App {
   text-align: center;
-  padding: 20px;
-  max-width: 100vw;
-  overflow-x: hidden; /* Para evitar rolagem horizontal indesejada no corpo */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .App-header {
-  background-color: #ffffff;
-  padding: 30px 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-bottom: 30px;
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 25px;
+  gap: 20px;
 }
 
 .App-header h1 {
-  color: #2c3e50;
   margin: 0;
   font-size: 2.5em;
-  font-weight: 600;
 }
 
 .action-buttons-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
   gap: 20px;
   width: 100%;
   max-width: 1200px;
@@ -54,62 +51,45 @@ body {
 }
 
 .custom-file-upload {
-  background-color: #4CAF50; /* Verde */
-  color: white;
-  padding: 12px 25px;
-  border-radius: 8px;
+  background-color: #61dafb; /* Azul claro */
+  color: #282c34;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 1em;
-  font-weight: 500;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 250px;
-  text-align: center;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .custom-file-upload:hover {
-  background-color: #45a049;
-  transform: translateY(-1px);
+  background-color: #21a1f1;
 }
 
-.process-csv-button, .export-button {
-  background-color: #007bff; /* Azul */
+.process-csv-button {
+  background-color: #28a745; /* Verde */
   color: white;
-  padding: 12px 25px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   font-size: 1em;
-  font-weight: 500;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.process-csv-button:hover, .export-button:hover {
-  background-color: #0056b3;
-  transform: translateY(-1px);
+.process-csv-button:hover:not(:disabled) {
+  background-color: #218838;
 }
 
 .process-csv-button:disabled {
-  background-color: #cccccc;
+  background-color: #6c757d;
   cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-.overdue-count {
-  background-color: #dc3545; /* Vermelho */
-  color: white;
-  padding: 12px 25px;
-  border-radius: 8px;
-  font-size: 1em;
-  font-weight: 600;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
 }
 
 .search-container {
@@ -119,18 +99,11 @@ body {
 }
 
 .search-input {
-  padding: 12px 15px 12px 40px; /* EspaÃ§o para o Ã­cone */
+  padding: 10px 15px 10px 40px; /* Padding extra para o ícone */
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 1em;
   width: 250px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.search-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-  outline: none;
 }
 
 .search-icon {
@@ -139,124 +112,148 @@ body {
   color: #888;
 }
 
+.export-button {
+  background-color: #007bff; /* Azul */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.export-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
 .error-message {
-  color: #dc3545;
+  color: #dc3545; /* Vermelho de erro */
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 5px;
   margin-top: 20px;
-  font-weight: 500;
-  width: fit-content;
-  max-width: 90%;
-  text-align: center;
+  font-weight: bold;
+}
+
+.App-main {
+  flex-grow: 1;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Alinha o conteúdo ao topo */
 }
 
 .data-table-container {
-  overflow-x: auto; /* Permite rolagem horizontal para a tabela */
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 20px;
+  width: 100%;
+  overflow-x: auto;
+  margin: 20px auto;
+  max-width: 95%;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
 .data-table {
   width: 100%;
-  border-collapse: separate; /* Para bordas arredondadas e espaÃ§amento */
-  border-spacing: 0;
-  min-width: 1400px; /* Largura mÃ­nima para a tabela */
+  border-collapse: collapse;
+  min-width: 1200px; /* Garante que a tabela não fique muito estreita */
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
   padding: 12px 15px;
+  border: 1px solid #ddd;
   text-align: left;
-  border-bottom: 1px solid #eee;
-  white-space: nowrap; /* Evita quebra de linha nas cÃ©lulas */
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap; /* Evita que o texto quebre em várias linhas */
 }
 
 .data-table th {
-  background-color: #4472C4; /* Azul escuro para cabeÃ§alhos */
-  color: white;
-  font-weight: 600;
+  background-color: #f2f2f2;
+  font-weight: bold;
+  color: #333;
   position: sticky;
   top: 0;
-  z-index: 10;
-  cursor: pointer;
+  z-index: 1;
+  cursor: default; /* Remove cursor de texto */
 }
 
-.data-table th:first-child {
-  border-top-left-radius: 8px;
+.data-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
 }
 
-.data-table th:last-child {
-  border-top-right-radius: 8px;
+.data-table tbody tr:hover {
+  background-color: #f0f0f0;
 }
 
-.data-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.header-content {
+/* Estilos de cabeçalho com filtro e ordenação */
+.th-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 5px;
 }
 
-.sortable-header {
+.header-text {
   display: flex;
   align-items: center;
   gap: 5px;
   cursor: pointer;
+  user-select: none;
   flex-grow: 1;
 }
 
 .sort-icon {
-  margin-left: 5px;
   font-size: 0.8em;
+  color: #888;
 }
 
-.filter-wrapper {
-  position: relative;
-  display: inline-block;
+.sort-icon.inactive {
+  opacity: 0.4;
 }
 
 .filter-icon-container {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 24px; /* Tamanho fixo para o Ã­cone de filtro */
-  height: 24px;
-  cursor: pointer;
-  z-index: 11; /* Acima do dropdown */
+  height: 100%;
 }
 
 .filter-icon {
-  color: white;
-  font-size: 1em;
+  cursor: pointer;
+  color: #888;
   transition: color 0.2s ease;
 }
 
+.filter-icon:hover,
 .filter-icon.active {
-  color: #FFD700; /* Amarelo quando ativo */
+  color: #007bff;
 }
 
 .filter-dropdown {
   position: absolute;
-  top: 100%; /* Posiciona abaixo do cabeÃ§alho */
-  right: 0;
-  background-color: #ffffff;
+  top: 100%; /* Abaixo do cabeçalho */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100; /* Garante que o dropdown fique acima de tudo */
-  min-width: 220px;
-  max-height: 300px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100; /* Garante que fique acima da tabela */
+  padding: 10px;
+  min-width: 200px;
+  max-height: 300px; /* Altura máxima para scroll */
   overflow-y: auto;
-  padding: 15px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -265,24 +262,19 @@ body {
 .filter-options-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 200px; /* Altura mÃ¡xima para as opÃ§Ãµes de filtro */
-  overflow-y: auto;
-  padding-right: 5px; /* EspaÃ§o para scrollbar */
+  gap: 5px;
 }
 
 .filter-option {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.95em;
-  color: #333;
   cursor: pointer;
+  padding: 3px 0;
 }
 
 .filter-option input[type="checkbox"] {
   cursor: pointer;
-  transform: scale(1.1);
 }
 
 .filter-actions {
@@ -296,53 +288,53 @@ body {
 .filter-actions button {
   flex: 1;
   padding: 8px 12px;
-  border-radius: 6px;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 0.9em;
-  font-weight: 500;
   transition: background-color 0.2s ease;
 }
 
 .filter-actions button:first-child {
-  background-color: #28a745; /* Verde para Aplicar */
+  background-color: #3498DB; /* Azul para aplicar */
   color: white;
-  border: 1px solid #28a745;
 }
 
 .filter-actions button:first-child:hover {
-  background-color: #218838;
+  background-color: #2186c4;
 }
 
 .filter-actions button:last-child {
-  background-color: #f8f9fa; /* Cinza claro para Limpar */
-  color: #333;
-  border: 1px solid #ccc;
+  background-color: #E74C3C; /* Vermelho para limpar */
+  color: white;
 }
 
 .filter-actions button:last-child:hover {
-  background-color: #e2e6ea;
+  background-color: #c0392b;
 }
 
-/* Cores das linhas da tabela */
+/* Estilos para as linhas da tabela */
 .row-overdue {
   background-color: #C00000; /* Vermelho intenso */
-  color: #FFFFFF; /* Texto branco para contraste */
+  color: #FFFFFF; /* Texto branco */
 }
 
 .row-due-today {
   background-color: #FFC000; /* Amarelo */
-  color: #333; /* Texto escuro para contraste */
+  color: #000000; /* Texto preto */
 }
 
-/* NOVA CLASSE: Linhas que nÃ£o estÃ£o atrasadas nem vencendo hoje */
 .row-default-blue {
-  background-color: #E0F2F7; /* Azul claro suave */
-  color: #333; /* Texto escuro para contraste */
+  background-color: #E0F2F7; /* Azul claro */
+  color: #000000; /* Texto preto */
 }
 
-/* Estilo para a cÃ©lula "Justificativa do Abono" quando "FALTA ABONAR" */
-/* Usamos !important para garantir que este estilo prevaleÃ§a sobre a cor da linha */
-.col-justificativa-do-abono[style*="background-color: rgb(128, 0, 128)"] { /* Seleciona pelo estilo inline */
+/* Estilo para a célula "FALTA ABONAR" */
+.col-justificativa-do-abono {
+  /* Estilos base para a coluna, se necessário */
+}
+
+.col-justificativa-do-abono[style*="background-color: rgb(128, 0, 128)"] { /* Roxo intenso */
   background-color: #800080 !important; /* Roxo intenso */
   color: #FFFFFF !important; /* Texto branco */
   font-weight: bold !important;
@@ -357,7 +349,7 @@ body {
 .col-status { width: 150px; }
 .col-data-limite { width: 120px; }
 .col-cliente { width: 180px; }
-.col-cnpj-\/\-cpf { width: 180px; } /* Escapado para o CSS */
+.col-cnpj-cpf { width: 180px; } /* CORRIGIDO: Removido o escape desnecessário */
 .col-cidade { width: 150px; }
 .col-tecnico { width: 200px; }
 .col-prestador { width: 180px; }
@@ -381,7 +373,7 @@ body {
     flex-direction: column;
     gap: 15px;
   }
-  .custom-file-upload, .process-csv-button, .export-button, .overdue-count, .search-container {
+  .custom-file-upload, .process-csv-button, .export-button, .search-container {
     width: 100%;
     max-width: 100%;
   }
