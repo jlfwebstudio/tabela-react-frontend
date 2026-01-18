@@ -47,19 +47,27 @@ function App() {
   }, []);
 
   // Função para parsear a data no formato DD/MM/YYYY para um objeto Date
+  // Ignora a parte da hora para comparações
   const parseDateForComparison = useCallback((dateString) => {
     if (!dateString) return null;
     // Garante que a data seja tratada como DD/MM/YYYY, ignorando qualquer hora
-    const [day, month, year] = dateString.split(' ')[0].split('/').map(Number);
-    const date = new Date(year, month - 1, day);
-    date.setHours(0, 0, 0, 0); // Zera a hora para comparações precisas
-    return isNaN(date.getTime()) ? null : date;
+    const datePart = dateString.split(' ')[0];
+    const parts = datePart.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Mês é 0-indexado
+      const year = parseInt(parts[2], 10);
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0); // Zera a hora para comparações precisas
+      return isNaN(date.getTime()) ? null : date;
+    }
+    return null;
   }, []);
 
   // Formata a data para exibição (apenas DD/MM/YYYY)
   const formatDataLimite = useCallback((dateString) => {
     if (!dateString) return '';
-    const date = parseDateForComparison(dateString);
+    const date = parseDateForComparison(dateString); // Usa a função de parse para garantir que a hora seja zerada
     if (date && !isNaN(date)) {
       return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
@@ -335,22 +343,22 @@ function App() {
 
     // Aplicar estilos aos cabeçalhos
     const headerStyle = {
-      font: { bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "002060" } }, // Azul escuro
+      font: { bold: true, color: { rgb: "FFFFFFFF" } }, // Branco
+      fill: { fgColor: { rgb: "FF2C3E50" } }, // Azul escuro
       alignment: { horizontal: "center", vertical: "center" },
       border: {
-        top: { style: "thin", color: { rgb: "000000" } },
-        bottom: { style: "thin", color: { rgb: "000000" } },
-        left: { style: "thin", color: { rgb: "000000" } },
-        right: { style: "thin", color: { rgb: "000000" } },
+        top: { style: "thin", color: { rgb: "FF000000" } },
+        bottom: { style: "thin", color: { rgb: "FF000000" } },
+        left: { style: "thin", color: { rgb: "FF000000" } },
+        right: { style: "thin", color: { rgb: "FF000000" } },
       }
     };
 
     // Aplicar estilos às células de dados
     for (let R = 0; R < filteredForExport.length; R++) {
       const rowData = filteredForExport[R];
-      const rowClass = getRowClass(rowData); // Obter a classe da linha para determinar a cor
-      const justificativaStyle = getJustificativaCellStyle(rowData); // Obter estilo da justificativa
+      const rowClass = getRowClass(rowData); // Obtém a classe da linha para determinar a cor
+      const justificativaText = getJustificativaCellText(rowData); // Obtém o texto formatado
 
       for (let C = 0; C < tableHeaders.length; C++) {
         const cellAddress = XLSX.utils.encode_cell({ r: R + 1, c: C }); // +1 para pular o cabeçalho
@@ -360,43 +368,47 @@ function App() {
         // Estilo padrão para a célula
         let cellStyle = {
           border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } },
+            top: { style: "thin", color: { rgb: "FF000000" } },
+            bottom: { style: "thin", color: { rgb: "FF000000" } },
+            left: { style: "thin", color: { rgb: "FF000000" } },
+            right: { style: "thin", color: { rgb: "FF000000" } },
           }
         };
 
         // Aplicar cor de fundo da linha
         if (rowClass === 'row-overdue') {
-          cellStyle.fill = { fgColor: { rgb: "C00000" } }; // Vermelho intenso
-          cellStyle.font = { color: { rgb: "FFFFFF" } }; // Texto branco
+          cellStyle.fill = { fgColor: { rgb: "FFC00000" } }; // Vermelho intenso
+          cellStyle.font = { color: { rgb: "FFFFFFFF" } }; // Texto branco
         } else if (rowClass === 'row-due-today') {
-          cellStyle.fill = { fgColor: { rgb: "FFC000" } }; // Amarelo
-          cellStyle.font = { color: { rgb: "000000" } }; // Texto preto
+          cellStyle.fill = { fgColor: { rgb: "FFFFC000" } }; // Amarelo
+          cellStyle.font = { color: { rgb: "FF000000" } }; // Texto preto
         } else {
-          cellStyle.fill = { fgColor: { rgb: "E0F2F7" } }; // Azul claro
-          cellStyle.font = { color: { rgb: "000000" } }; // Texto preto
+          cellStyle.fill = { fgColor: { rgb: "FFE0F2F7" } }; // Azul claro
+          cellStyle.font = { color: { rgb: "FF000000" } }; // Texto preto
         }
 
         // Aplicar estilo específico para "Justificativa do Abono" se for "FALTA ABONAR"
-        if (header === 'Justificativa do Abono' && Object.keys(justificativaStyle).length > 0) {
-          cellStyle.fill = { fgColor: { rgb: "800080" } }; // Roxo intenso
-          cellStyle.font = { color: { rgb: "FFFFFF" }, bold: true }; // Texto branco e negrito
+        if (header === 'Justificativa do Abono' && justificativaText === 'FALTA ABONAR') {
+          cellStyle.fill = { fgColor: { rgb: "FF800080" } }; // Roxo intenso
+          cellStyle.font = { color: { rgb: "FFFFFFFF" }, bold: true }; // Texto branco e negrito
           // Garantir que o texto seja "FALTA ABONAR" no Excel
-          XLSX.utils.sheet_add_aoa(ws, [[getJustificativaCellText(rowData)]], { origin: cellAddress });
+          XLSX.utils.sheet_add_aoa(ws, [[justificativaText]], { origin: cellAddress });
+        } else {
+          // Adicionar o valor original da célula se não for "FALTA ABONAR"
+          XLSX.utils.sheet_add_aoa(ws, [[cellValue]], { origin: cellAddress });
         }
 
         // Formatação específica para CNPJ / CPF como texto
         if (header === 'CNPJ / CPF') {
           cellStyle.numFmt = '@'; // Formato de texto
+          ws[cellAddress].t = 's'; // Tipo string
         }
 
         // Formatação específica para Data Limite como data
         if (header === 'Data Limite') {
-          // Garante que a data seja formatada como DD/MM/YYYY no Excel
           const formattedDate = formatDataLimite(cellValue);
           if (formattedDate) {
+            ws[cellAddress].t = 's'; // Tipo string para manter DD/MM/YYYY
             XLSX.utils.sheet_add_aoa(ws, [[formattedDate]], { origin: cellAddress });
           }
         }
@@ -425,7 +437,7 @@ function App() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pendentes");
     XLSX.writeFile(wb, `Pendentes_Hoje_${todayFormatted}.xlsx`);
-  }, [filteredAndSortedData, isOverdue, isDueToday, tableHeaders, getRowClass, getJustificativaCellStyle, getJustificativaCellText, formatDataLimite, todayFormatted]);
+  }, [filteredAndSortedData, isOverdue, isDueToday, tableHeaders, getRowClass, getJustificativaCellText, getJustificativaCellStyle, formatDataLimite, todayFormatted]);
 
 
   return (
@@ -435,10 +447,15 @@ function App() {
         <div className="action-buttons-container">
           <div className="file-upload-section">
             <label htmlFor="file-upload" className="custom-file-upload">
-              <FontAwesomeIcon icon={faUpload} /> Selecionar CSV
+              <FontAwesomeIcon icon={faUpload} /> {file ? file.name : 'Selecionar CSV'}
             </label>
-            <input id="file-upload" type="file" accept=".csv" onChange={handleFileChange} />
-            {file && <span className="file-name">{file.name}</span>}
+            <input
+              id="file-upload"
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
             <button onClick={handleUpload} disabled={!file || loading} className="process-csv-button">
               {loading ? 'Processando...' : 'Processar CSV'}
             </button>
@@ -485,10 +502,10 @@ function App() {
                           <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
                         )}
                       </div>
-                      <div className="filter-icon-container" ref={activeFilterColumn === header ? filterDropdownRef : null}>
+                      <div className="filter-container" ref={activeFilterColumn === header ? filterDropdownRef : null}>
                         <FontAwesomeIcon
                           icon={faFilter}
-                          className={`filter-icon ${activeFilterColumn === header ? 'active' : ''}`}
+                          className={`filter-icon ${activeFilterColumn === header || (selectedFilterOptions[header] && selectedFilterOptions[header].length > 0) ? 'active' : ''}`}
                           onClick={() => toggleFilterDropdown(header)}
                         />
                         {activeFilterColumn === header && (
@@ -499,7 +516,7 @@ function App() {
                                   <input
                                     type="checkbox"
                                     checked={(selectedFilterOptions[header] || []).includes(option)}
-                                    onChange={() => handleFilterOptionChange(header, option)}
+                                    onChange={() => handleFilterOptionChange(header, option, true)}
                                   />
                                   {option}
                                 </label>
