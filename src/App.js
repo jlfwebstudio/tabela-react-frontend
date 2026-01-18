@@ -204,9 +204,8 @@ function App() {
       }
 
       const result = await response.json();
-      // CORREÇÃO AQUI: O backend retorna o array de dados diretamente, não dentro de um objeto 'data'
-      if (result && result.length > 0) { // Verifica se o array de resultados não está vazio
-        setData(result); // Define os dados diretamente do resultado
+      if (result && result.length > 0) {
+        setData(result);
       } else {
         setData([]);
         setError('Nenhum dado válido foi extraído do CSV.');
@@ -335,13 +334,18 @@ function App() {
       return;
     }
 
+    // Mapeia os dados para um formato de array de objetos para o SheetJS
+    // Isso é mais robusto para aplicar estilos por célula
     const exportData = filteredForExport.map(row => {
       const newRow = {};
       tableHeaders.forEach(header => {
         let value = row[header];
+        // Limpeza específica para CNPJ / CPF: remove tudo que não for dígito e formata como texto
         if (header === 'CNPJ / CPF' && value) {
           value = String(value).replace(/[^\d]/g, '');
-        } else if (header === 'Justificativa do Abono') {
+        }
+        // Para a célula "Justificativa do Abono", usa o texto formatado
+        else if (header === 'Justificativa do Abono') {
           value = getJustificativaCellText(row);
         }
         newRow[header] = value;
@@ -349,8 +353,10 @@ function App() {
       return newRow;
     });
 
+    // Cria a planilha a partir dos dados JSON
     const ws = XLSX.utils.json_to_sheet(exportData, { header: tableHeaders });
 
+    // Define larguras das colunas
     ws['!cols'] = [
       { wch: 12 }, // Chamado
       { wch: 18 }, // Numero Referencia
@@ -366,6 +372,7 @@ function App() {
       { wch: 25 }  // Justificativa do Abono
     ];
 
+    // Estilos padrão para cabeçalhos
     const headerStyle = {
       font: { name: "Calibri", sz: 12, bold: true, color: { rgb: "FFFFFF" } },
       fill: { fgColor: { rgb: "4472C4" } },
@@ -378,9 +385,10 @@ function App() {
       }
     };
 
+    // Estilos de linha condicional
     const overdueRowStyle = {
       font: { name: "Calibri", sz: 12, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "C00000" } },
+      fill: { fgColor: { rgb: "C00000" } }, // Vermelho intenso
       alignment: { vertical: "center", horizontal: "left", wrapText: false },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
@@ -392,7 +400,7 @@ function App() {
 
     const dueTodayRowStyle = {
       font: { name: "Calibri", sz: 12, color: { rgb: "000000" } },
-      fill: { fgColor: { rgb: "FFC000" } },
+      fill: { fgColor: { rgb: "FFC000" } }, // Amarelo
       alignment: { vertical: "center", horizontal: "left", wrapText: false },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
@@ -404,7 +412,7 @@ function App() {
 
     const defaultRowStyle = {
       font: { name: "Calibri", sz: 12, color: { rgb: "000000" } },
-      fill: { fgColor: { rgb: "E0F2F7" } },
+      fill: { fgColor: { rgb: "E0F2F7" } }, // Azul claro suave
       alignment: { vertical: "center", horizontal: "left", wrapText: false },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
@@ -416,7 +424,7 @@ function App() {
 
     const abonarCellStyle = {
       font: { name: "Calibri", sz: 12, bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "800080" } },
+      fill: { fgColor: { rgb: "800080" } }, // Roxo intenso
       alignment: { vertical: "center", horizontal: "center", wrapText: false },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
@@ -426,23 +434,25 @@ function App() {
       }
     };
 
+    // Itera sobre as células para aplicar estilos e formatação condicional
     const range = XLSX.utils.decode_range(ws['!ref']);
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        if (!ws[cellAddress]) ws[cellAddress] = {};
+        if (!ws[cellAddress]) ws[cellAddress] = {}; // Garante que o objeto da célula exista
 
         let cellStyle = { ...defaultRowStyle }; // Começa com o estilo padrão da linha
 
         if (R === 0) { // Linha do cabeçalho
           cellStyle = headerStyle;
-        } else { // Linhas de dados
-          const rowData = filteredForExport[R - 1]; // -1 porque a primeira linha é o cabeçalho
-          if (isOverdue(rowData)) {
+        } else { // Linhas de dados (R > 0)
+          const originalRowData = filteredForExport[R - 1]; // Pega os dados originais para verificar isOverdue/isDueToday
+          if (isOverdue(originalRowData)) {
             cellStyle = overdueRowStyle;
-          } else if (isDueToday(rowData)) {
+          } else if (isDueToday(originalRowData)) {
             cellStyle = dueTodayRowStyle;
           }
+
           // Aplica o alinhamento horizontal específico para cada coluna de dados
           const header = tableHeaders[C];
           if (header === 'Data Limite' || header === 'Justificativa do Abono' || header === 'Chamado' || header === 'Numero Referencia' || header === 'Status') {
@@ -450,37 +460,49 @@ function App() {
           } else if (['Serviço', 'Contratante', 'Cliente', 'CNPJ / CPF', 'Cidade', 'Técnico', 'Prestador'].includes(header)) {
             cellStyle.alignment = { ...cellStyle.alignment, horizontal: "left" };
           }
-        }
 
-        // Sobrescreve o estilo da célula "Justificativa do Abono" se for "FALTA ABONAR"
-        if (R > 0 && tableHeaders[C] === 'Justificativa do Abono') {
-          const rowData = filteredForExport[R - 1];
-          const justificativa = normalizeForComparison(rowData['Justificativa do Abono']);
-          const isAbonarCondition = justificativa === 'falta abonar' || justificativa === '';
-          if (isOverdue(rowData) && isAbonarCondition) {
-            cellStyle = { ...abonarCellStyle }; // Usa o estilo roxo completo
+          // Sobrescreve o estilo da célula "Justificativa do Abono" se for "FALTA ABONAR"
+          if (header === 'Justificativa do Abono') {
+            const justificativa = normalizeForComparison(originalRowData['Justificativa do Abono']);
+            const isAbonarCondition = justificativa === 'falta abonar' || justificativa === '';
+            if (isOverdue(originalRowData) && isAbonarCondition) {
+              cellStyle = { ...abonarCellStyle }; // Usa o estilo roxo completo
+              ws[cellAddress].v = 'FALTA ABONAR'; // Garante o texto correto
+              ws[cellAddress].t = 's'; // Tipo string
+            } else {
+              ws[cellAddress].v = originalRowData['Justificativa do Abono'];
+              ws[cellAddress].t = 's';
+            }
           }
-        }
-
-        // Formatação de Data Limite
-        if (R > 0 && tableHeaders[C] === 'Data Limite') {
-          const rowData = filteredForExport[R - 1];
-          const date = parseDateForComparison(rowData['Data Limite']);
-          if (date && !isNaN(date)) {
-            ws[cellAddress].v = XLSX.utils.date_to_num(date, { date1904: false }); // Converte para número de série do Excel
-            ws[cellAddress].t = 'n'; // Tipo número
-            cellStyle.numFmt = 'DD/MM/YYYY'; // Formato de data
-          } else {
-            ws[cellAddress].v = String(rowData['Data Limite'] || '');
-            ws[cellAddress].t = 's'; // Tipo string
+          // Formatação de Data Limite
+          else if (header === 'Data Limite') {
+            const date = parseDateForComparison(originalRowData['Data Limite']);
+            if (date && !isNaN(date)) {
+              // CORREÇÃO: Usando XLSX.utils.date_to_num (que é um alias para date_to_excel em versões recentes)
+              // Se ainda der erro, a alternativa é usar a conversão manual:
+              // const excelDate = Math.floor(date.getTime() / (1000 * 60 * 60 * 24) + 25569);
+              // ws[cellAddress].v = excelDate;
+              ws[cellAddress].v = XLSX.utils.date_to_num(date, { date1904: false }); // Tenta novamente com date_to_num
+              ws[cellAddress].t = 'n'; // Tipo número
+              cellStyle.numFmt = 'DD/MM/YYYY'; // Formato de data
+            } else {
+              ws[cellAddress].v = String(originalRowData['Data Limite'] || '');
+              ws[cellAddress].t = 's'; // Tipo string
+            }
           }
-        } else {
-          // Para outras células, o valor já foi definido no json_to_sheet ou no mapeamento inicial
-          // Apenas garantimos que o tipo esteja correto se for um número (como no caso de datas que não foram formatadas)
-          if (R > 0 && typeof ws[cellAddress].v === 'number' && !isNaN(ws[cellAddress].v)) {
-            ws[cellAddress].t = 'n';
-          } else if (R > 0) {
-            ws[cellAddress].t = 's'; // Garante que seja string por padrão
+          // Estilos e valores específicos para 'CNPJ / CPF'
+          else if (header === 'CNPJ / CPF') {
+            ws[cellAddress].v = String(originalRowData['CNPJ / CPF'] || '').replace(/[^\d]/g, ''); // Garante apenas dígitos
+            ws[cellAddress].t = 's'; // Tipo string para evitar formatação numérica
+          }
+          // Para outras células de dados, o valor já foi definido no json_to_sheet
+          else {
+            // Garante que o tipo esteja correto se for um número
+            if (typeof ws[cellAddress].v === 'number' && !isNaN(ws[cellAddress].v)) {
+              ws[cellAddress].t = 'n';
+            } else {
+              ws[cellAddress].t = 's'; // Garante que seja string por padrão
+            }
           }
         }
 
@@ -488,16 +510,22 @@ function App() {
       }
     }
 
+    // Adiciona autofiltro
     ws['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(tableHeaders.length - 1)}${filteredForExport.length + 1}` };
+
+    // Congela a primeira linha (cabeçalhos)
     ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft', state: 'frozen' };
 
+    // Cria o workbook e adiciona a planilha
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Pendentes');
 
+    // Define a cor da aba
     if (!wb.Workbook) wb.Workbook = {};
     if (!wb.Workbook.Views) wb.Workbook.Views = [{}];
     wb.Workbook.Views[0].TabColor = { rgb: "4472C4" };
 
+    // Gera o arquivo Excel
     XLSX.writeFile(wb, `Pendentes_Hoje_${todayFormatted}.xlsx`);
 
   }, [data, tableHeaders, isOverdue, isDueToday, getJustificativaCellText, parseDateForComparison, normalizeForComparison, todayFormatted]);
