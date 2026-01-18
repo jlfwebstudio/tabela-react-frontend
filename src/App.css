@@ -1,13 +1,10 @@
 /* frontend/src/App.css */
 body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f6; /* Cor de fundo suave */
+  background-color: #f4f7f6;
   color: #333;
+  line-height: 1.6;
 }
 
 .App {
@@ -18,10 +15,11 @@ body {
 }
 
 .App-header {
-  background-color: #2C3E50; /* Azul escuro */
-  padding: 20px;
+  background-color: #282c34;
+  padding: 25px 20px;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -31,72 +29,73 @@ body {
 .App-header h1 {
   margin: 0;
   font-size: 2.5em;
+  font-weight: 600;
 }
 
 .action-buttons-container {
   display: flex;
-  justify-content: center;
-  gap: 30px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
 }
 
 .file-upload-section, .global-actions-section {
   display: flex;
   align-items: center;
   gap: 15px;
-  background-color: #34495E; /* Azul um pouco mais claro */
+  background-color: #3a404a;
   padding: 15px 20px;
   border-radius: 8px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .custom-file-upload {
-  background-color: #28a745; /* Verde */
+  background-color: #007bff;
   color: white;
-  padding: 10px 15px;
+  padding: 10px 18px;
   border-radius: 5px;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
 }
 
 .custom-file-upload:hover {
-  background-color: #218838;
-}
-
-input[type="file"] {
-  display: none;
+  background-color: #0056b3;
 }
 
 .file-name {
-  color: #ecf0f1; /* Cinza claro */
-  font-style: italic;
+  color: #a0a0a0;
+  font-size: 0.9em;
   max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.process-csv-button {
-  background-color: #007bff; /* Azul */
+.process-csv-button, .export-button {
+  background-color: #28a745;
   color: white;
-  padding: 10px 15px;
+  padding: 10px 18px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 1em;
   transition: background-color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.process-csv-button:hover:not(:disabled) {
-  background-color: #0056b3;
+.process-csv-button:hover, .export-button:hover {
+  background-color: #218838;
 }
 
-.process-csv-button:disabled {
+.process-csv-button:disabled, .export-button:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
 }
@@ -108,75 +107,46 @@ input[type="file"] {
 }
 
 .search-input {
-  padding: 10px 15px 10px 40px; /* Padding extra para o ícone */
+  padding: 10px 10px 10px 40px; /* Aumenta padding-left para o ícone */
   border: 1px solid #ccc;
   border-radius: 5px;
   font-size: 1em;
   width: 250px;
+  box-sizing: border-box;
 }
 
 .search-icon {
   position: absolute;
   left: 15px;
   color: #888;
-}
-
-.export-button {
-  background-color: #007bff; /* Azul */
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s ease;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.export-button:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.export-button:disabled {
-  background-color: #6c757d;
-  cursor: not-allowed;
+  font-size: 1.1em;
 }
 
 .error-message {
-  color: #dc3545; /* Vermelho de erro */
+  color: #dc3545;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   padding: 10px;
   border-radius: 5px;
-  margin-top: 20px;
-  font-weight: bold;
-}
-
-.App-main {
-  flex-grow: 1;
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Alinha o conteúdo ao topo */
+  margin-top: 15px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .data-table-container {
-  width: 100%;
-  overflow-x: auto;
-  margin: 20px auto;
-  max-width: 95%;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: white;
+  flex-grow: 1;
+  padding: 0 20px 20px;
+  overflow-x: auto; /* Permite rolagem horizontal para tabelas grandes */
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1200px; /* Garante que a tabela não fique muito estreita */
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  min-width: 1200px; /* Largura mínima para evitar colunas muito estreitas */
 }
 
 .data-table th,
