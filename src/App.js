@@ -65,7 +65,7 @@ function App() {
       return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
     return dateString;
-  }, [parseDateForComparison]); // Dependência: parseDateForComparison
+  }, [parseDateForComparison]);
 
   const today = useMemo(() => {
     const d = new Date();
@@ -117,10 +117,9 @@ function App() {
       return { backgroundColor: '#800080', color: '#FFFFFF', fontWeight: 'bold' };
     }
     return {};
-  }, [isOverdue, normalizeForComparison]); // Dependências: isOverdue, normalizeForComparison
+  }, [isOverdue, normalizeForComparison]);
 
   // Texto para a célula "Justificativa do Abono"
-  // CORREÇÃO: Adicionando 'isOverdue' e 'normalizeForComparison' às dependências
   const getJustificativaCellText = useCallback((row) => {
     const justificativa = normalizeForComparison(row['Justificativa do Abono']);
     const isAbonarCondition = justificativa === 'falta abonar' || justificativa === '';
@@ -129,7 +128,7 @@ function App() {
       return 'FALTA ABONAR';
     }
     return row['Justificativa do Abono'];
-  }, [isOverdue, normalizeForComparison]); // Dependências: isOverdue, normalizeForComparison
+  }, [isOverdue, normalizeForComparison]);
 
 
   // Função para obter opções de filtro para uma coluna
@@ -257,9 +256,8 @@ function App() {
   const clearColumnFilter = useCallback((columnName) => {
     setSelectedFilterOptions(prev => ({
       ...prev,
-      [columnName]: [] // Limpa todas as opções selecionadas para a coluna
+      [columnName]: []
     }));
-    // Não fecha o dropdown aqui, para permitir que o usuário veja que o filtro foi limpo
   }, []);
 
   const filteredAndSortedData = useMemo(() => {
@@ -410,7 +408,8 @@ function App() {
         else if (header === 'Data Limite') {
           const date = parseDateForComparison(cellValue);
           if (date && !isNaN(date)) {
-            cellValue = XLSX.utils.date_to_num(date, { date1904: false }); // Converte para número de série do Excel
+            // CORREÇÃO: Usar XLSX.utils.date_to_excel em vez de XLSX.utils.date_to_num
+            cellValue = XLSX.utils.date_to_excel(date, { date1904: false }); // Converte para número de série do Excel
             cellStyle.numFmt = 'DD/MM/YYYY'; // Formato de data
             cellStyle.alignment = { ...cellStyle.alignment, horizontal: "center" }; // Centraliza
           } else {
@@ -476,12 +475,12 @@ function App() {
 
     // Definir a cor da aba (se a estrutura existir)
     if (!wb.Workbook) wb.Workbook = {};
-    if (!wb.Workbook.Views) wb.Workbook.Views = [{}];
+    if (!wb.Workbook.Views) wb.Workbook.Views = [{}]; // Garante que Views[0] exista
     wb.Workbook.Views[0].TabColor = { rgb: "4472C4" }; // Cor da aba azul escuro
 
     // Gerar o arquivo Excel
     XLSX.writeFile(wb, `Pendentes_Hoje_${todayFormatted}.xlsx`);
-  }, [filteredAndSortedData, isOverdue, isDueToday, normalizeForComparison, parseDateForComparison, tableHeaders, todayFormatted, getRowClass]); // Dependências: todas as funções e estados usados dentro do useCallback
+  }, [filteredAndSortedData, isOverdue, isDueToday, normalizeForComparison, parseDateForComparison, tableHeaders, todayFormatted, getRowClass]);
 
   return (
     <div className="App">
