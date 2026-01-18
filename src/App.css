@@ -18,7 +18,7 @@ body {
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #2C3E50; /* Azul escuro */
   padding: 20px;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -35,56 +35,65 @@ body {
 
 .action-buttons-container {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .file-upload-section, .global-actions-section {
   display: flex;
   align-items: center;
   gap: 15px;
-  flex-wrap: wrap;
-  justify-content: center;
+  background-color: #34495E; /* Azul um pouco mais claro */
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .custom-file-upload {
-  background-color: #61dafb; /* Azul claro */
-  color: #282c34;
-  padding: 10px 20px;
+  background-color: #28a745; /* Verde */
+  color: white;
+  padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s ease;
   font-weight: bold;
+  transition: background-color 0.3s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
 .custom-file-upload:hover {
-  background-color: #21a1f1;
+  background-color: #218838;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.file-name {
+  color: #ecf0f1; /* Cinza claro */
+  font-style: italic;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .process-csv-button {
-  background-color: #28a745; /* Verde */
+  background-color: #007bff; /* Azul */
   color: white;
-  padding: 10px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
-  transition: background-color 0.3s ease;
   font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  transition: background-color 0.3s ease;
 }
 
 .process-csv-button:hover:not(:disabled) {
-  background-color: #218838;
+  background-color: #0056b3;
 }
 
 .process-csv-button:disabled {
