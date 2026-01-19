@@ -40,7 +40,7 @@ function App() {
     'Justificativa do Abono',
   ], []);
 
-  // Normaliza strings para comparação (remove acentos, caixa baixa, espaços e caracteres especiais)
+  // Normaliza strings para comparação (remove acentos, caixa baixa, espaços extras)
   const normalizeForComparison = useCallback((str) => {
     if (typeof str !== 'string' && str !== null && str !== undefined) return String(str);
     if (typeof str !== 'string') return '';
@@ -314,7 +314,7 @@ function App() {
       // Lógica de ordenação para 'Data Limite'
       if (sortColumn === 'Data Limite') {
         const dateA = parseDateForComparison(aValue);
-        const dateB = parseDateForComparison(bValue); // <-- CORREÇÃO AQUI: Garantindo o nome correto da função
+        const dateB = parseDateForComparison(bValue);
 
         if (dateA === null && dateB === null) return 0;
         if (dateA === null) return sortDirection === 'asc' ? 1 : -1;
