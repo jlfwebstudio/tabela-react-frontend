@@ -119,7 +119,7 @@ body {
 }
 
 .search-input {
-  padding: 12px 15px 12px 40px; /* Espaço para o ícone */
+  padding: 12px 15px 12px 40px; /* EspaÃƒÂ§o para o ÃƒÂ­cone */
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1em;
@@ -162,22 +162,22 @@ body {
 
 .data-table {
   width: 100%;
-  border-collapse: separate; /* Para bordas arredondadas e espaçamento */
+  border-collapse: separate; /* Para bordas arredondadas e espaÃƒÂ§amento */
   border-spacing: 0;
-  min-width: 1400px; /* Largura mínima para a tabela */
+  min-width: 1400px; /* Largura mÃƒÂ­nima para a tabela */
 }
 
 .data-table th, .data-table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #eee;
-  white-space: nowrap; /* Evita quebra de linha nas células */
+  white-space: nowrap; /* Evita quebra de linha nas cÃƒÂ©lulas */
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .data-table th {
-  background-color: #4472C4; /* Azul escuro para cabeçalhos */
+  background-color: #4472C4; /* Azul escuro para cabeÃƒÂ§alhos */
   color: white;
   font-weight: 600;
   position: sticky;
@@ -228,7 +228,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px; /* Tamanho fixo para o ícone de filtro */
+  width: 24px; /* Tamanho fixo para o ÃƒÂ­cone de filtro */
   height: 24px;
   cursor: pointer;
   z-index: 11; /* Acima do dropdown */
@@ -246,7 +246,7 @@ body {
 
 .filter-dropdown {
   position: absolute;
-  top: 100%; /* Posiciona abaixo do cabeçalho */
+  top: 100%; /* Posiciona abaixo do cabeÃƒÂ§alho */
   right: 0;
   background-color: #ffffff;
   border: 1px solid #ddd;
@@ -266,9 +266,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 200px; /* Altura máxima para as opções de filtro */
+  max-height: 200px; /* Altura mÃƒÂ¡xima para as opÃƒÂ§ÃƒÂµes de filtro */
   overflow-y: auto;
-  padding-right: 5px; /* Espaço para scrollbar */
+  padding-right: 5px; /* EspaÃƒÂ§o para scrollbar */
 }
 
 .filter-option {
@@ -334,14 +334,14 @@ body {
   color: #333; /* Texto escuro para contraste */
 }
 
-/* NOVA CLASSE: Linhas que não estão atrasadas nem vencendo hoje */
+/* NOVA CLASSE: Linhas que nÃƒÂ£o estÃƒÂ£o atrasadas nem vencendo hoje */
 .row-default-blue {
   background-color: #E0F2F7; /* Azul claro suave */
   color: #333; /* Texto escuro para contraste */
 }
 
-/* Estilo para a célula "Justificativa do Abono" quando "FALTA ABONAR" */
-/* Usamos !important para garantir que este estilo prevaleça sobre a cor da linha */
+/* Estilo para a cÃƒÂ©lula "Justificativa do Abono" quando "FALTA ABONAR" */
+/* Usamos !important para garantir que este estilo prevaleÃƒÂ§a sobre a cor da linha */
 .col-justificativa-do-abono[style*="background-color: rgb(128, 0, 128)"] { /* Seleciona pelo estilo inline */
   background-color: #800080 !important; /* Roxo intenso */
   color: #FFFFFF !important; /* Texto branco */
