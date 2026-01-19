@@ -20,7 +20,7 @@ function App() {
     'Status': ['ENCAMINHADA', 'EM TRANSFERÊNCIA', 'EM CAMPO', 'REENCAMINHADO', 'PROCEDIMENTO TÉCNICO']
   });
   const [activeFilterColumn, setActiveFilterColumn] = useState(null);
-  const [currentOverdueCount, setCurrentOverdueCount] = useState(0); // Contador de pendências
+  // REMOVIDO: currentOverdueCount e setCurrentOverdueCount para resolver no-unused-vars
 
   const filterDropdownRef = useRef(null);
   const filterButtonRefs = useRef({}); // Para fechar o dropdown ao clicar em outro botão de filtro
@@ -234,10 +234,10 @@ function App() {
     });
   }, []);
 
-  const applyColumnFilter = useCallback(() => {
-    // A filtragem é aplicada automaticamente via useMemo filteredAndSortedData
-    setActiveFilterColumn(null);
-  }, []);
+  // REMOVIDO: applyColumnFilter para resolver no-unused-vars
+  // const applyColumnFilter = useCallback(() => {
+  //   setActiveFilterColumn(null);
+  // }, []);
 
   const clearColumnFilter = useCallback((columnName) => {
     setSelectedFilterOptions(prev => ({
@@ -343,7 +343,6 @@ function App() {
     return sortedData;
   }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, tableHeaders, normalizeForComparison, parseDateForComparison]);
 
-  // Contador de pendências (agora usado no JSX)
   const overdueCountDisplay = useMemo(() => {
     return filteredAndSortedData.filter(row => isOverdue(row) || isDueToday(row)).length;
   }, [filteredAndSortedData, isOverdue, isDueToday]);
@@ -540,7 +539,7 @@ function App() {
               <FontAwesomeIcon icon={faFileExcel} /> Exportar Pendentes Hoje
             </button>
             <div className="overdue-count">
-              Pendentes Hoje: {overdueCountDisplay} {/* <-- CORREÇÃO AQUI: Usando overdueCountDisplay */}
+              Pendentes Hoje: {overdueCountDisplay}
             </div>
           </div>
         </div>
@@ -567,7 +566,7 @@ function App() {
                           <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
                         )}
                       </div>
-                      <div className="filter-icon-container" ref={filterButtonRefs.current[header] = el => filterButtonRefs.current[header] = el}> {/* <-- CORREÇÃO AQUI: Atribuindo ref */}
+                      <div className="filter-icon-container" ref={filterButtonRefs.current[header] = el => filterButtonRefs.current[header] = el}>
                         <FontAwesomeIcon
                           icon={faFilter}
                           className={`filter-icon ${activeFilterColumn === header ? 'active' : ''}`}
@@ -588,7 +587,7 @@ function App() {
                               ))}
                             </div>
                             <div className="filter-actions">
-                              <button onClick={() => setActiveFilterColumn(null)}>Aplicar</button> {/* Simplificado */}
+                              <button onClick={() => setActiveFilterColumn(null)}>Aplicar</button>
                               <button onClick={() => clearColumnFilter(header)}>Limpar</button>
                             </div>
                           </div>
@@ -608,7 +607,6 @@ function App() {
                       className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}
                       style={header === 'Justificativa do Abono' ? getJustificativaCellStyle(row) : {}}
                     >
-                      {/* <-- CORREÇÃO AQUI: Estrutura ternária aninhada corrigida */}
                       {header === 'Justificativa do Abono'
                         ? getJustificativaCellText(row)
                         : header === 'Data Limite'
