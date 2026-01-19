@@ -148,7 +148,7 @@ function App() {
   // Lida com o upload do arquivo CSV para o backend
   const handleUpload = useCallback(async () => {
     if (!file) {
-      setError('Por favor, selecione um arquivo CSV para fazer o upload.');
+      setError('Por favor, selecione um arquivo CSV para upload.');
       return;
     }
 
@@ -156,7 +156,7 @@ function App() {
     setError('');
 
     const formData = new FormData();
-    formData.append('file', file); // Usando 'file' como nome do campo, conforme esperado pelo backend
+    formData.append('file', file); // Usando 'file' como nome do campo, conforme o backend espera
 
     try {
       const response = await fetch(`${backendUrl}/upload`, {
@@ -165,14 +165,13 @@ function App() {
       });
 
       if (!response.ok) {
-        // Tenta ler a resposta como JSON, se falhar, lê como texto
         let errorMessage = `Erro no servidor: ${response.status}`;
         try {
-          const errorJson = await response.json();
-          errorMessage += ` - ${errorJson.message || JSON.stringify(errorJson)}`;
-        } catch (e) {
+          const errorBody = await response.json();
+          errorMessage += ` - ${errorBody.message || JSON.stringify(errorBody)}`;
+        } catch {
           const errorText = await response.text();
-          errorMessage += ` - ${errorText.substring(0, 200)}...`; // Limita o tamanho do texto
+          errorMessage += ` - ${errorText.substring(0, 100)}...`; // Limita o tamanho do texto do erro
         }
         throw new Error(errorMessage);
       }
@@ -181,42 +180,53 @@ function App() {
 
       if (result && result.length > 0) {
         setData(result);
-        // Define os cabeçalhos da tabela com base nos dados, mas na ordem desejada
-        const extractedHeaders = Object.keys(result[0]);
-        const orderedHeaders = defaultTableHeaders.filter(header => extractedHeaders.includes(header));
+        // Define os cabeçalhos da tabela com base nas chaves do primeiro objeto de dados,
+        // mas na ordem definida por defaultTableHeaders.
+        const actualHeaders = Object.keys(result[0]);
+        const orderedHeaders = defaultTableHeaders.filter(header => actualHeaders.includes(header));
         setTableHeaders(orderedHeaders);
 
-        // Atualiza as opções de filtro com base nos novos dados
+        // Extrai opções de filtro para cada coluna
         const newFilterOptions = {};
         orderedHeaders.forEach(header => {
-          const options = [...new Set(result.map(row => String(row[header]).trim()))].sort();
+          const options = [...new Set(result.map(row => String(row[header] || '').trim()))].filter(Boolean).sort();
           newFilterOptions[header] = options;
         });
         setFilterOptions(newFilterOptions);
+
+        // Reinicia filtros selecionados para incluir novas opções, se houver
+        setSelectedFilterOptions(prev => {
+          const newSelected = { ...prev };
+          orderedHeaders.forEach(header => {
+            if (!newSelected[header] || newSelected[header].length === 0) {
+              // Se não houver filtros pré-selecionados para esta coluna, selecione todos por padrão
+              newSelected[header] = newFilterOptions[header];
+            } else {
+              // Se houver, garanta que os filtros existentes ainda são válidos e adicione novos se necessário
+              newSelected[header] = newSelected[header].filter(opt => newFilterOptions[header].includes(opt));
+              // Opcional: Adicionar novas opções automaticamente se desejar
+              // newSelected[header] = [...new Set([...newSelected[header], ...newFilterOptions[header]])];
+            }
+          });
+          return newSelected;
+        });
 
       } else {
         setData([]);
         setTableHeaders([]);
         setFilterOptions({});
+        setSelectedFilterOptions({});
         setError('Nenhum dado válido foi extraído do CSV.');
       }
     } catch (err) {
-      console.error('Erro ao processar o arquivo:', err);
+      console.error('Erro ao fazer upload:', err);
       setError(`Erro ao processar o arquivo: ${err.message}`);
     } finally {
       setLoading(false);
     }
   }, [file, backendUrl, defaultTableHeaders]);
 
-  // Lida com a ordenação da tabela
-  const handleSort = useCallback((column) => {
-    setSortDirection(prevDir =>
-      column === sortColumn ? (prevDir === 'asc' ? 'desc' : 'asc') : 'asc'
-    );
-    setSortColumn(column);
-  }, [sortColumn]);
-
-  // Lida com a pesquisa na tabela
+  // Lida com a mudança na barra de pesquisa
   const handleSearchChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
@@ -226,287 +236,266 @@ function App() {
     setSelectedFilterOptions(prev => {
       const currentOptions = prev[column] || [];
       if (currentOptions.includes(option)) {
-        return { ...prev, [column]: currentOptions.filter(item => item !== option) };
+        return {
+          ...prev,
+          [column]: currentOptions.filter(item => item !== option)
+        };
       } else {
-        return { ...prev, [column]: [...currentOptions, option] };
+        return {
+          ...prev,
+          [column]: [...currentOptions, option]
+        };
       }
     });
   }, []);
 
-  // Aplica o filtro de uma coluna específica
+  // Aplica o filtro de coluna (não faz nada, pois o filtro é aplicado em tempo real pelo useMemo)
   const applyColumnFilter = useCallback(() => {
-    setActiveFilterColumn(null); // Fecha o dropdown após aplicar
+    setActiveFilterColumn(null); // Fecha o dropdown após "aplicar"
   }, []);
 
   // Limpa o filtro de uma coluna específica
   const clearColumnFilter = useCallback((column) => {
-    setSelectedFilterOptions(prev => ({ ...prev, [column]: [] }));
-  }, []);
+    setSelectedFilterOptions(prev => ({
+      ...prev,
+      [column]: filterOptions[column] || [] // Reseta para todas as opções disponíveis
+    }));
+    setActiveFilterColumn(null); // Fecha o dropdown
+  }, [filterOptions]);
 
   // Lida com a abertura/fechamento do dropdown de filtro
   const toggleFilterDropdown = useCallback((column) => {
     setActiveFilterColumn(prev => (prev === column ? null : column));
-  }, []);
+  }, []); // Removido normalizeForComparison
 
   // Fecha o dropdown de filtro ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target) && activeFilterColumn) {
-        // Verifica se o clique não foi no ícone de filtro da coluna ativa
-        const filterIcon = document.querySelector(`.filter-icon.active`);
-        if (filterIcon && filterIcon.contains(event.target)) {
-          return; // Não fecha se clicou no próprio ícone de filtro
-        }
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
         setActiveFilterColumn(null);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [filterDropdownRef, activeFilterColumn]);
+  }, [filterDropdownRef]);
 
-  // Dados filtrados e ordenados
+  // Filtra e ordena os dados da tabela
   const filteredAndSortedData = useMemo(() => {
     let filteredData = data;
 
-    // Aplica filtro de pesquisa global
+    // Aplica filtro de pesquisa
     if (searchTerm) {
       const normalizedSearchTerm = normalizeForComparison(searchTerm);
       filteredData = filteredData.filter(row =>
-        Object.values(row).some(value =>
-          normalizeForComparison(value).includes(normalizedSearchTerm)
+        tableHeaders.some(header =>
+          normalizeForComparison(row[header]).includes(normalizedSearchTerm)
         )
       );
     }
 
     // Aplica filtros de coluna
-    Object.keys(selectedFilterOptions).forEach(column => {
-      const selectedOptions = selectedFilterOptions[column];
-      if (selectedOptions && selectedOptions.length > 0) {
-        filteredData = filteredData.filter(row =>
-          selectedOptions.includes(String(row[column]).trim())
-        );
-      }
+    filteredData = filteredData.filter(row => {
+      return tableHeaders.every(header => {
+        const selectedOptions = selectedFilterOptions[header];
+        if (!selectedOptions || selectedOptions.length === 0) {
+          return true; // Se nenhuma opção selecionada, não filtra
+        }
+        const rowValue = String(row[header] || '').trim();
+        return selectedOptions.includes(rowValue);
+      });
     });
 
     // Calcula o contador de pendências atrasadas
-    const count = filteredData.filter(row => isOverdue(row)).length;
+    let count = 0;
+    filteredData.forEach(row => {
+      if (isOverdue(row)) {
+        count++;
+      }
+    });
     setCurrentOverdueCount(count);
 
     // Aplica ordenação
     if (sortColumn) {
-      filteredData = [...filteredData].sort((a, b) => {
+      filteredData.sort((a, b) => {
         const aValue = a[sortColumn];
         const bValue = b[sortColumn];
 
-        let comparison = 0;
+        // Lógica de ordenação para 'Data Limite'
         if (sortColumn === 'Data Limite') {
           const dateA = parseDateForComparison(aValue);
           const dateB = parseDateForComparison(bValue);
-          if (dateA && dateB) {
-            comparison = dateA.getTime() - dateB.getTime();
-          } else if (dateA) {
-            comparison = -1;
-          } else if (dateB) {
-            comparison = 1;
-          }
-        } else {
-          const normalizedA = normalizeForComparison(aValue);
-          const normalizedB = normalizeForComparison(bValue);
-          if (normalizedA < normalizedB) {
-            comparison = -1;
-          } else if (normalizedA > normalizedB) {
-            comparison = 1;
-          }
+
+          if (dateA === null && dateB === null) return 0;
+          if (dateA === null) return sortDirection === 'asc' ? 1 : -1;
+          if (dateB === null) return sortDirection === 'asc' ? -1 : 1;
+
+          return sortDirection === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
         }
 
-        return sortDirection === 'asc' ? comparison : -comparison;
+        // Ordenação padrão para outras colunas (string)
+        const normalizedA = normalizeForComparison(aValue);
+        const normalizedB = normalizeForComparison(bValue);
+
+        if (normalizedA < normalizedB) return sortDirection === 'asc' ? -1 : 1;
+        if (normalizedA > normalizedB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
       });
     }
 
     return filteredData;
-  }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, normalizeForComparison, parseDateForComparison, isOverdue, tableHeaders]);
+  }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, parseDateForComparison, normalizeForComparison, isOverdue, isDueToday, setCurrentOverdueCount]); // Removido tableHeaders
 
-  // Exporta dados para Excel
+  // Filtra os dados para exportação (apenas pendências de hoje)
+  const filteredForExport = useMemo(() => {
+    return data.filter(row => isOverdue(row) || isDueToday(row));
+  }, [data, isOverdue, isDueToday]);
+
+  // Exporta os dados filtrados para um arquivo Excel
   const exportToExcel = useCallback(() => {
-    // Filtra apenas as pendências atrasadas ou que vencem hoje
-    const filteredForExport = filteredAndSortedData.filter(row => isOverdue(row) || isDueToday(row));
-
     if (filteredForExport.length === 0) {
-      alert('Não há pendências atrasadas ou que vencem hoje para exportar.');
+      alert('Não há dados de pendências para exportar.');
       return;
     }
 
-    const ws_name = "Pendencias";
-    const wb = XLSX.utils.book_new();
-
-    // Prepara os dados para a planilha, incluindo os cabeçalhos como a primeira linha
-    const ws_data = [
-      tableHeaders, // Cabeçalhos na primeira linha
-      ...filteredForExport.map(row => tableHeaders.map(header => {
-        // Formatação especial para CNPJ/CPF para evitar problemas de número no Excel
-        if (header === 'CNPJ / CPF') {
-          return String(row[header] || '').replace(/['"=]/g, '').trim();
+    const exportData = filteredForExport.map(row => {
+      const newRow = {};
+      tableHeaders.forEach(header => {
+        // Formata 'Data Limite' para exibição no Excel antes de exportar
+        if (header === 'Data Limite') {
+          newRow[header] = formatDataLimite(row[header]);
+        } else if (header === 'CNPJ / CPF') {
+          newRow[header] = String(row[header] || '').replace(/['"=]/g, '').trim();
+        } else {
+          newRow[header] = row[header];
         }
-        // Retorna o valor original para outras colunas
-        return row[header];
-      }))
-    ];
+      });
+      return newRow;
+    });
 
+    const ws_data = [tableHeaders, ...exportData.map(row => tableHeaders.map(header => row[header]))];
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
-    // Define larguras de coluna (ajuste conforme necessário)
+    // Define larguras de coluna
     const wscols = tableHeaders.map(header => {
       let width = 15; // Largura padrão
-      if (header === 'Serviço' || header === 'Justificativa do Abono') width = 30;
-      if (header === 'Contratante' || header === 'Cliente') width = 25;
-      if (header === 'Numero Referencia' || header === 'CNPJ / CPF') width = 20;
-      if (header === 'Data Limite') width = 18;
+      if (header === 'Serviço' || header === 'Contratante' || header === 'Cliente' || header === 'Justificativa do Abono') {
+        width = 30;
+      } else if (header === 'Numero Referencia' || header === 'CNPJ / CPF') {
+        width = 20;
+      } else if (header === 'Data Limite') {
+        width = 15;
+      }
       return { wch: width };
     });
     ws['!cols'] = wscols;
 
     // Estilos para o cabeçalho
     const headerStyle = {
-      fill: { fgColor: { rgb: "FF4472C4" } }, // Azul escuro (ARGB)
-      font: { color: { rgb: "FFFFFFFF" }, bold: true, name: "Calibri", sz: 11 }, // Texto branco, negrito, Calibri 11
-      alignment: { horizontal: "center", vertical: "center" },
+      font: { bold: true, color: { argb: 'FFFFFFFF' } }, // Branco
+      fill: { fgColor: { argb: 'FF4472C4' } }, // Azul escuro
+      alignment: { horizontal: 'center', vertical: 'center' },
       border: {
-        top: { style: "thin", color: { rgb: "FF000000" } },
-        bottom: { style: "thin", color: { rgb: "FF000000" } },
-        left: { style: "thin", color: { rgb: "FF000000" } },
-        right: { style: "thin", color: { rgb: "FF000000" } },
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } },
       }
     };
 
-    // Estilos base para as linhas de dados
+    // Estilos base para as linhas
     const defaultRowBaseStyle = {
-      font: { color: { rgb: "FF000000" }, name: "Calibri", sz: 11 }, // Texto preto padrão
-      fill: { fgColor: { rgb: "FFE0F2F7" } }, // Azul claro suave (ARGB)
-      alignment: { vertical: "center" },
+      font: { color: { argb: 'FF000000' } }, // Preto
+      alignment: { horizontal: 'left', vertical: 'center' },
       border: {
-        top: { style: "thin", color: { rgb: "FFDDDDDD" } }, // Cinza claro
-        bottom: { style: "thin", color: { rgb: "FFDDDDDD" } },
-        left: { style: "thin", color: { rgb: "FFDDDDDD" } },
-        right: { style: "thin", color: { rgb: "FFDDDDDD" } },
+        top: { style: 'thin', color: { argb: 'FFD3D3D3' } }, // Cinza claro
+        bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+        left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+        right: { style: 'thin', color: { argb: 'FFD3D3D3' } },
       }
     };
 
-    // Estilo para linhas atrasadas (vermelho intenso)
     const overdueRowBaseStyle = {
       ...defaultRowBaseStyle,
-      fill: { fgColor: { rgb: "FFC00000" } }, // Vermelho intenso (ARGB)
-      font: { color: { rgb: "FFFFFFFF" }, bold: true, name: "Calibri", sz: 11 }, // Texto branco, negrito
+      fill: { fgColor: { argb: 'FFFFC7CE' } }, // Vermelho claro
+      font: { color: { argb: 'FF9C0006' } }, // Vermelho escuro
     };
 
-    // Estilo para linhas que vencem hoje (amarelo)
     const dueTodayRowBaseStyle = {
       ...defaultRowBaseStyle,
-      fill: { fgColor: { rgb: "FFFFC000" } }, // Amarelo (ARGB)
-      font: { color: { rgb: "FF000000" }, bold: true, name: "Calibri", sz: 11 }, // Texto preto, negrito
+      fill: { fgColor: { argb: 'FFFFFFEB' } }, // Amarelo claro
+      font: { color: { argb: 'FF9C6500' } }, // Amarelo escuro
     };
 
-    // Estilo para a célula "FALTA ABONAR"
     const abonarCellStyle = {
-      fill: { fgColor: { rgb: "FF800080" } }, // Roxo intenso (ARGB)
-      font: { color: { rgb: "FFFFFFFF" }, bold: true, name: "Calibri", sz: 11 }, // Texto branco, negrito
-      alignment: { horizontal: "center", vertical: "center" },
-      border: {
-        top: { style: "thin", color: { rgb: "FF000000" } },
-        bottom: { style: "thin", color: { rgb: "FF000000" } },
-        left: { style: "thin", color: { rgb: "FF000000" } },
-        right: { style: "thin", color: { rgb: "FF000000" } },
-      }
+      fill: { fgColor: { argb: 'FF800080' } }, // Roxo intenso
+      font: { bold: true, color: { argb: 'FFFFFFFF' } }, // Branco
+      alignment: { horizontal: 'center', vertical: 'center' },
     };
 
-    // Aplica estilos às células
+    // Aplica estilos
     const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let R = range.s.r; R <= range.e.r; ++R) { // Itera sobre as linhas
-      let originalRowData = null;
-      if (R > 0) { // Para linhas de dados (ignorando o cabeçalho)
-        originalRowData = filteredForExport[R - 1]; // Pega os dados originais da linha
-      }
-
-      let baseStyleForDataRow = defaultRowBaseStyle;
-      if (originalRowData) { // Garante que há dados para a linha
-        if (isOverdue(originalRowData)) {
-          baseStyleForDataRow = overdueRowBaseStyle;
-        } else if (isDueToday(originalRowData)) {
-          baseStyleForDataRow = dueTodayRowBaseStyle;
-        }
-      }
-
+    for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
-        const header = tableHeaders[C];
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-        let cell = ws[cellAddress];
+        const cell = ws[cellAddress] || { t: 's', v: '' }; // Garante que a célula exista
+        ws[cellAddress] = cell; // Garante que a célula esteja no worksheet
 
-        if (!cell) { // Se a célula não existe, cria uma com tipo string e valor vazio
-          cell = { t: 's', v: '' };
-          ws[cellAddress] = cell;
+        // Estilo do cabeçalho
+        if (R === 0) {
+          cell.s = headerStyle;
+          continue; // Pula para a próxima célula após aplicar o estilo do cabeçalho
         }
 
-        // Aplica estilo do cabeçalho
-        if (R === 0) {
-          cell.s = { ...headerStyle };
-        } else { // Linhas de dados
-          cell.s = { ...baseStyleForDataRow }; // Aplica o estilo base da linha
+        // Estilos para as linhas de dados
+        const originalRowData = filteredForExport[R - 1]; // -1 porque a linha 0 é o cabeçalho
+        let currentCellStyle = { ...defaultRowBaseStyle }; // Começa com o estilo padrão
 
-          // Ajustes de alinhamento para colunas específicas
-          if (['Chamado', 'Numero Referencia', 'Status', 'Data Limite', 'Cidade'].includes(header)) {
-            cell.s.alignment = { ...cell.s.alignment, horizontal: "center" };
-          } else {
-            cell.s.alignment = { ...cell.s.alignment, horizontal: "left" };
+        if (originalRowData) {
+          if (isOverdue(originalRowData)) {
+            currentCellStyle = { ...overdueRowBaseStyle };
+          } else if (isDueToday(originalRowData)) {
+            currentCellStyle = { ...dueTodayRowBaseStyle };
           }
 
-          // Lógica para "FALTA ABONAR"
-          if (header === 'Justificativa do Abono' && originalRowData && isOverdue(originalRowData) && isAbonarCondition(originalRowData)) {
-            cell.v = 'FALTA ABONAR'; // Garante que o texto seja "FALTA ABONAR"
-            cell.s = { ...abonarCellStyle }; // Aplica o estilo roxo completo
+          // Estilo específico para a coluna 'Justificativa do Abono'
+          if (tableHeaders[C] === 'Justificativa do Abono' && isOverdue(originalRowData) && isAbonarCondition(originalRowData)) {
+            currentCellStyle = { ...currentCellStyle, ...abonarCellStyle };
           }
 
-          // Formatação de Data Limite
-          if (header === 'Data Limite' && originalRowData && originalRowData[header]) {
-            const dateValue = parseDateForComparison(originalRowData[header]);
-            if (dateValue && !isNaN(dateValue)) {
-              const excelEpoch = new Date(Date.UTC(1899, 11, 30));
-              const diffTime = dateValue.getTime() - excelEpoch.getTime();
-              const excelDate = diffTime / (1000 * 60 * 60 * 24);
-              cell.v = excelDate; // Valor numérico para o Excel
-              cell.t = 'n'; // Tipo numérico
-              cell.s.numFmt = 'DD/MM/YYYY'; // Formato de exibição
-            } else {
-              // Se a data for inválida, mantém o valor original como string
-              cell.v = originalRowData[header];
-              cell.t = 's';
-            }
+          // Alinhamento específico para colunas
+          if (['Chamado', 'Numero Referencia', 'Status', 'Data Limite', 'Cidade'].includes(tableHeaders[C])) {
+            currentCellStyle.alignment = { ...currentCellStyle.alignment, horizontal: 'center' };
+          } else if (['CNPJ / CPF', 'Serviço', 'Contratante', 'Cliente', 'Técnico', 'Prestador'].includes(tableHeaders[C])) {
+            currentCellStyle.alignment = { ...currentCellStyle.alignment, horizontal: 'left' };
           }
-          // CNPJ / CPF como texto
-          if (header === 'CNPJ / CPF' && originalRowData && originalRowData[header]) {
-            cell.v = String(originalRowData[header] || '').replace(/['"=]/g, '').trim();
-            cell.t = 's'; // Força como texto
+        }
+
+        cell.s = currentCellStyle; // Aplica o estilo final à célula
+
+        // Formatação específica para 'Data Limite'
+        if (tableHeaders[C] === 'Data Limite' && originalRowData && originalRowData[tableHeaders[C]]) {
+          const dateValue = parseDateForComparison(originalRowData[tableHeaders[C]]);
+          if (dateValue && !isNaN(dateValue)) {
+            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+            const diffTime = dateValue.getTime() - excelEpoch.getTime();
+            const excelDate = diffTime / (1000 * 60 * 60 * 24);
+            cell.v = excelDate; // Valor numérico para o Excel
+            cell.t = 'n'; // Tipo numérico
+            cell.s.numFmt = 'DD/MM/YYYY'; // Formato de exibição
           }
+        }
+        // CNPJ / CPF como texto
+        if (tableHeaders[C] === 'CNPJ / CPF' && originalRowData && originalRowData[tableHeaders[C]]) {
+          cell.v = String(originalRowData[tableHeaders[C]] || '').replace(/['"=]/g, '').trim();
+          cell.t = 's'; // Força como texto
         }
       }
     }
 
-    // Adiciona autofiltro
-    ws['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(tableHeaders.length - 1)}${filteredForExport.length + 1}` };
-
-    // Congela a primeira linha (cabeçalhos)
-    ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomLeft', state: 'frozen' };
-
-    XLSX.utils.book_append_sheet(wb, ws, ws_name);
-
-    // Define a cor da aba (Sheet Tab Color)
-    if (!wb.Workbook) wb.Workbook = {};
-    if (!wb.Workbook.Views) wb.Workbook.Views = [{}];
-    wb.Workbook.Views[0].TabColor = { rgb: "FF4472C4" }; // Azul escuro (ARGB)
-
     XLSX.writeFile(wb, `Pendencias_Hoje_${todayFormatted}.xlsx`);
-  }, [filteredAndSortedData, tableHeaders, todayFormatted, isOverdue, isAbonarCondition, isDueToday, parseDateForComparison]);
+  }, [filteredForExport, tableHeaders, todayFormatted, isOverdue, isAbonarCondition, isDueToday, parseDateForComparison, formatDataLimite]);
 
 
   return (
@@ -541,7 +530,7 @@ function App() {
                   className="search-input"
                 />
               </div>
-              <button onClick={exportToExcel} disabled={data.length === 0} className="action-button export-button">
+              <button onClick={exportToExcel} className="action-button export-button">
                 <FontAwesomeIcon icon={faFileExcel} /> Exportar Pendentes Hoje
               </button>
             </div>
@@ -552,84 +541,82 @@ function App() {
       {error && <p className="error-message">Erro: {error}</p>}
 
       {data.length > 0 && (
-        <div className="table-container">
+        <div className="table-wrapper"> {/* Adicionado wrapper para scroll horizontal */}
           <div className="overdue-count-display">
             <h3>Pendências Atrasadas: {currentOverdueCount}</h3>
           </div>
-          <div className="table-wrapper"> {/* Novo wrapper para a tabela */}
-            <table className="data-table">
-              <thead>
-                <tr>
-                  {tableHeaders.map(header => (
-                    <th key={header} className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}>
-                      <div className="th-content">
-                        <div className="header-text" onClick={() => handleSort(header)}>
-                          {header}
-                          {sortColumn === header ? (
-                            sortDirection === 'asc' ? (
-                              <FontAwesomeIcon icon={faSortUp} className="sort-icon" />
-                            ) : (
-                              <FontAwesomeIcon icon={faSortDown} className="sort-icon" />
-                            )
+          <table className="data-table">
+            <thead>
+              <tr>
+                {tableHeaders.map(header => (
+                  <th key={header} className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}>
+                    <div className="th-content">
+                      <div className="header-text" onClick={() => handleSort(header)}>
+                        {header}
+                        {sortColumn === header ? (
+                          sortDirection === 'asc' ? (
+                            <FontAwesomeIcon icon={faSortUp} className="sort-icon" />
                           ) : (
-                            <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
-                          )}
-                        </div>
-                        <div className="filter-icon-container" ref={activeFilterColumn === header ? filterDropdownRef : null}>
-                          <FontAwesomeIcon
-                            icon={faFilter}
-                            className={`filter-icon ${activeFilterColumn === header ? 'active' : ''}`}
-                            onClick={() => toggleFilterDropdown(header)}
-                          />
-                          {activeFilterColumn === header && (
-                            <div className="filter-dropdown">
-                              <div className="filter-options-container">
-                                {filterOptions[header] && filterOptions[header].map(option => (
-                                  <label key={option} className="filter-option">
-                                    <input
-                                      type="checkbox"
-                                      checked={(selectedFilterOptions[header] || []).includes(option)}
-                                      onChange={() => handleFilterOptionChange(header, option)}
-                                    />
-                                    {option}
-                                  </label>
-                                ))}
-                              </div>
-                              <div className="filter-actions">
-                                <button onClick={applyColumnFilter}>Aplicar</button>
-                                <button onClick={() => clearColumnFilter(header)}>Limpar</button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                            <FontAwesomeIcon icon={faSortDown} className="sort-icon" />
+                          )
+                        ) : (
+                          <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
+                        )}
                       </div>
-                    </th>
+                      <div className="filter-icon-container" ref={activeFilterColumn === header ? filterDropdownRef : null}>
+                        <FontAwesomeIcon
+                          icon={faFilter}
+                          className={`filter-icon ${activeFilterColumn === header ? 'active' : ''}`}
+                          onClick={() => toggleFilterDropdown(header)}
+                        />
+                        {activeFilterColumn === header && (
+                          <div className="filter-dropdown">
+                            <div className="filter-options-container">
+                              {filterOptions[header] && filterOptions[header].map(option => (
+                                <label key={option} className="filter-option">
+                                  <input
+                                    type="checkbox"
+                                    checked={(selectedFilterOptions[header] || []).includes(option)}
+                                    onChange={() => handleFilterOptionChange(header, option)}
+                                  />
+                                  {option}
+                                </label>
+                              ))}
+                            </div>
+                            <div className="filter-actions">
+                              <button onClick={applyColumnFilter}>Aplicar</button>
+                              <button onClick={() => clearColumnFilter(header)}>Limpar</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAndSortedData.map((row, rowIndex) => (
+                <tr key={rowIndex} className={getRowClass(row)}>
+                  {tableHeaders.map(header => (
+                    <td
+                      key={header}
+                      className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}
+                      style={header === 'Justificativa do Abono' ? getJustificativaCellStyle(row) : {}}
+                    >
+                      {header === 'Justificativa do Abono'
+                        ? getJustificativaCellText(row)
+                        : header === 'Data Limite'
+                          ? formatDataLimite(row[header])
+                          : header === 'CNPJ / CPF'
+                            ? String(row[header] || '').replace(/['"=]/g, '').trim()
+                            : row[header]}
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody>
-                {filteredAndSortedData.map((row, rowIndex) => (
-                  <tr key={rowIndex} className={getRowClass(row)}>
-                    {tableHeaders.map(header => (
-                      <td
-                        key={header}
-                        className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}
-                        style={header === 'Justificativa do Abono' ? getJustificativaCellStyle(row) : {}}
-                      >
-                        {header === 'Justificativa do Abono'
-                          ? getJustificativaCellText(row)
-                          : header === 'Data Limite'
-                            ? formatDataLimite(row[header])
-                            : header === 'CNPJ / CPF'
-                              ? String(row[header] || '').replace(/['"=]/g, '').trim()
-                              : row[header]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div> {/* Fim do table-wrapper */}
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
