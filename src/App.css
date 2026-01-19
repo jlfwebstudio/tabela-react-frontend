@@ -37,7 +37,7 @@ body {
   flex-direction: column;
 }
 
-.App-header {
+.app-header {
   background-color: var(--primary-bg-color);
   padding: 20px 40px;
   color: var(--text-color-light);
@@ -64,11 +64,7 @@ body {
   gap: 15px;
 }
 
-.app-logo {
-  height: 50px; /* Ajuste conforme o tamanho do seu logo */
-}
-
-.App-header h1 {
+.app-title {
   font-size: 2.2em;
   margin: 0;
   color: var(--text-color-light); /* Garante que o título seja visível */
@@ -96,7 +92,7 @@ body {
   display: none; /* Esconde o input de arquivo original */
 }
 
-.upload-action-button, .action-button {
+.action-button {
   background-color: var(--accent-color);
   color: white;
   border: none;
@@ -110,13 +106,25 @@ body {
   transition: background-color 0.2s ease;
 }
 
-.upload-action-button:hover, .action-button:hover {
+.action-button:hover {
   background-color: #3a62b3; /* Um tom mais escuro do azul */
 }
 
 .action-button:disabled {
   background-color: #6c757d;
   cursor: not-allowed;
+}
+
+.upload-action-button {
+  background-color: var(--accent-color); /* Cor padrão para upload */
+}
+
+.export-button {
+  background-color: #28a745; /* Verde para exportar */
+}
+
+.export-button:hover {
+  background-color: #218838;
 }
 
 .search-bar {
@@ -146,12 +154,10 @@ body {
   color: #888;
 }
 
-.export-button {
-  background-color: #28a745; /* Verde para exportar */
-}
-
-.export-button:hover {
-  background-color: #218838;
+.file-name {
+  color: var(--text-color-light);
+  font-size: 0.9em;
+  margin-left: 5px;
 }
 
 .error-message {
@@ -160,57 +166,44 @@ body {
   border: 1px solid #f5c6cb;
   padding: 10px 20px;
   border-radius: 5px;
-  margin-top: 20px;
+  margin: 20px auto; /* Centraliza a mensagem de erro */
   width: fit-content;
   max-width: 90%;
   text-align: left;
   word-break: break-word;
 }
 
-.summary-cards {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 20px 0;
-  flex-wrap: wrap;
-}
-
-.card {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  min-width: 180px;
-  flex: 1;
-  max-width: 250px;
-}
-
-.card h3 {
-  margin-top: 0;
-  color: var(--accent-color);
-  font-size: 1.1em;
-}
-
-.card p {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: var(--text-color-dark);
-  margin-bottom: 0;
-}
-
-.data-table-container {
-  overflow-x: auto; /* Permite rolagem horizontal para tabelas largas */
+.table-container {
   margin: 20px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px; /* Adiciona padding ao redor da tabela */
+}
+
+.overdue-count-display {
+  text-align: left;
+  margin-bottom: 15px;
+  color: var(--text-color-dark);
+}
+
+.overdue-count-display h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: var(--row-overdue-bg); /* Usa a cor vermelha para o destaque */
+}
+
+/* Wrapper para a tabela para permitir rolagem horizontal e cabeçalho fixo */
+.table-wrapper {
+  overflow-x: auto; /* Permite rolagem horizontal */
+  position: relative; /* Necessário para o sticky */
+  max-width: 100%; /* Garante que não exceda o contêiner */
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1000px; /* Garante que a tabela tenha uma largura mínima */
+  min-width: 1200px; /* Largura mínima para a tabela, ajuste conforme necessário */
 }
 
 .data-table th, .data-table td {
@@ -218,6 +211,7 @@ body {
   border: 1px solid #ddd;
   text-align: left;
   font-size: 0.9em;
+  white-space: nowrap; /* Evita que o texto quebre linha nas células */
 }
 
 .data-table thead th {
@@ -225,9 +219,10 @@ body {
   color: var(--table-header-text);
   font-weight: bold;
   text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  position: sticky; /* Torna o cabeçalho fixo */
+  top: 0; /* Fixa no topo do contêiner pai com overflow */
+  z-index: 10; /* Garante que fique acima do corpo da tabela */
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2); /* Sombra para destacar o cabeçalho fixo */
 }
 
 .th-content {
@@ -247,7 +242,7 @@ body {
 }
 
 .sort-icon {
-  color: var(--text-color-light);
+  color: var(--table-header-text);
   font-size: 0.8em;
 }
 
@@ -261,7 +256,7 @@ body {
 }
 
 .filter-icon {
-  color: var(--text-color-light);
+  color: var(--table-header-text);
   cursor: pointer;
   padding: 2px;
 }
