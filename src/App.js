@@ -40,7 +40,7 @@ function App() {
     'Justificativa do Abono',
   ], []);
 
-  // Normaliza strings para comparação (remove acentos, caixa baixa, espaços extras)
+  // Normaliza strings para comparação (remove acentos, caixa baixa, espaços e caracteres especiais)
   const normalizeForComparison = useCallback((str) => {
     if (typeof str !== 'string' && str !== null && str !== undefined) return String(str);
     if (typeof str !== 'string') return '';
@@ -300,9 +300,7 @@ function App() {
     // 2. Filtragem por colunas (dropdowns)
     filteredData = filteredData.filter(row => {
       return Object.entries(selectedFilterOptions).every(([column, selectedOptions]) => {
-        if (!selectedOptions || selectedOptions.length === 0) { // Se não há opções selecionadas, não filtra por esta coluna
-          return true;
-        }
+        if (selectedOptions.length === 0) return true; // Se nenhuma opção selecionada, não filtra por esta coluna
         const rowValue = normalizeForComparison(row[column]);
         return selectedOptions.some(option => normalizeForComparison(option) === rowValue);
       });
@@ -316,7 +314,7 @@ function App() {
       // Lógica de ordenação para 'Data Limite'
       if (sortColumn === 'Data Limite') {
         const dateA = parseDateForComparison(aValue);
-        const dateB = parseDateForComparison(bValue); // <-- CORREÇÃO AQUI: Garantindo parseDateForComparison
+        const dateB = parseDateForComparison(bValue); // <-- CORREÇÃO AQUI: Garantindo o nome correto da função
 
         if (dateA === null && dateB === null) return 0;
         if (dateA === null) return sortDirection === 'asc' ? 1 : -1;
@@ -358,7 +356,7 @@ function App() {
       defaultTableHeaders.forEach(header => {
         if (header === 'Data Limite') {
           const date = parseDateForComparison(row[header]);
-          newRow[header] = date ? XLSX.utils.date_to_num(date) : ''; // Converte para número de série do Excel
+          newRow[header] = date ? XLSX.utils.date_to_num(date) : ''; // <-- CORREÇÃO AQUI: Usando XLSX.utils.date_to_num
         } else if (header === 'CNPJ / CPF') {
           newRow[header] = String(row[header] || '').replace(/['"=]/g, '').trim(); // Garante que seja string
         } else if (header === 'Justificativa do Abono') {
