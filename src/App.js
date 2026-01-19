@@ -320,7 +320,7 @@ function App() {
       // Lógica de ordenação para 'Data Limite'
       if (sortColumn === 'Data Limite') {
         const dateA = parseDateForComparison(aValue);
-        const dateB = parseDateForComparison(bValue);
+        const dateB = parseDateDateForComparison(bValue); // <-- CORREÇÃO AQUI: Erro de digitação
 
         if (dateA === null && dateB === null) return 0;
         if (dateA === null) return sortDirection === 'asc' ? 1 : -1;
