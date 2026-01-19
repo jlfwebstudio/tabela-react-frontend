@@ -23,6 +23,7 @@ function App() {
   const [currentOverdueCount, setCurrentOverdueCount] = useState(0); // Contador de pendências
 
   const filterDropdownRef = useRef(null);
+  const filterButtonRefs = useRef({}); // Para fechar o dropdown ao clicar em outro botão de filtro
 
   // Define os cabeçalhos da tabela na ordem desejada
   const defaultTableHeaders = useMemo(() => [
@@ -126,7 +127,7 @@ function App() {
     return isOverdue(row) && (justificativaValue === '' || normalizeForComparison(justificativaValue) === 'falta abonar');
   }, [isOverdue, normalizeForComparison]);
 
-  // Estilo para a célula "Justificativa do Abono"
+  // Retorna o estilo para a célula 'Justificativa do Abono'
   const getJustificativaCellStyle = useCallback((row) => {
     if (isAbonarCondition(row)) {
       return { backgroundColor: '#800080', color: '#FFFFFF', fontWeight: 'bold' }; // Roxo intenso
@@ -134,7 +135,7 @@ function App() {
     return {};
   }, [isAbonarCondition]);
 
-  // Texto para a célula "Justificativa do Abono"
+  // Retorna o texto para a célula 'Justificativa do Abono'
   const getJustificativaCellText = useCallback((row) => {
     if (isAbonarCondition(row)) {
       return 'FALTA ABONAR';
@@ -271,7 +272,16 @@ function App() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
-        setActiveFilterColumn(null);
+        let isClickOnFilterButton = false;
+        for (const header in filterButtonRefs.current) {
+          if (filterButtonRefs.current[header] && filterButtonRefs.current[header].contains(event.target)) {
+            isClickOnFilterButton = true;
+            break;
+          }
+        }
+        if (!isClickOnFilterButton) {
+          setActiveFilterColumn(null);
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -333,7 +343,8 @@ function App() {
     return sortedData;
   }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, tableHeaders, normalizeForComparison, parseDateForComparison]);
 
-  const overdueCount = useMemo(() => {
+  // Contador de pendências (agora usado no JSX)
+  const overdueCountDisplay = useMemo(() => {
     return filteredAndSortedData.filter(row => isOverdue(row) || isDueToday(row)).length;
   }, [filteredAndSortedData, isOverdue, isDueToday]);
 
@@ -529,7 +540,7 @@ function App() {
               <FontAwesomeIcon icon={faFileExcel} /> Exportar Pendentes Hoje
             </button>
             <div className="overdue-count">
-              Pendentes Hoje: {overdueCount}
+              Pendentes Hoje: {overdueCountDisplay} {/* <-- CORREÇÃO AQUI: Usando overdueCountDisplay */}
             </div>
           </div>
         </div>
@@ -556,14 +567,14 @@ function App() {
                           <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
                         )}
                       </div>
-                      <div className="filter-icon-container" ref={activeFilterColumn === header ? filterDropdownRef : null}>
+                      <div className="filter-icon-container" ref={filterButtonRefs.current[header] = el => filterButtonRefs.current[header] = el}> {/* <-- CORREÇÃO AQUI: Atribuindo ref */}
                         <FontAwesomeIcon
                           icon={faFilter}
                           className={`filter-icon ${activeFilterColumn === header ? 'active' : ''}`}
                           onClick={() => toggleFilterDropdown(header)}
                         />
                         {activeFilterColumn === header && (
-                          <div className="filter-dropdown">
+                          <div className="filter-dropdown" ref={filterDropdownRef}>
                             <div className="filter-options-container">
                               {filterOptions[header] && filterOptions[header].map(option => (
                                 <label key={option} className="filter-option">
@@ -597,11 +608,14 @@ function App() {
                       className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}
                       style={header === 'Justificativa do Abono' ? getJustificativaCellStyle(row) : {}}
                     >
+                      {/* <-- CORREÇÃO AQUI: Estrutura ternária aninhada corrigida */}
                       {header === 'Justificativa do Abono'
                         ? getJustificativaCellText(row)
                         : header === 'Data Limite'
                           ? formatDataLimite(row[header])
-                          : row[header]}
+                          : header === 'CNPJ / CPF'
+                            ? String(row[header] || '').replace(/['"=]/g, '').trim()
+                            : row[header]}
                     </td>
                   ))}
                 </tr>
