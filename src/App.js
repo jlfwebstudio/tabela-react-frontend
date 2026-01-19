@@ -374,8 +374,8 @@ function App() {
 
     // Estilos padrão para cabeçalhos
     const headerStyle = {
-      font: { name: "Calibri", sz: 12, bold: true, color: { rgb: "FFFFFF" } },
-      fill: { fgColor: { rgb: "4472C4" } },
+      font: { name: "Calibri", sz: 12, bold: true, color: { rgb: "FFFFFF" } }, // Texto branco
+      fill: { fgColor: { rgb: "4472C4" } }, // Azul escuro
       alignment: { vertical: "center", horizontal: "center", wrapText: false },
       border: {
         top: { style: "thin", color: { rgb: "000000" } },
@@ -478,11 +478,14 @@ function App() {
           else if (header === 'Data Limite') {
             const date = parseDateForComparison(originalRowData['Data Limite']);
             if (date && !isNaN(date)) {
-              // CORREÇÃO: Usando XLSX.utils.date_to_num (que é um alias para date_to_excel em versões recentes)
-              // Se ainda der erro, a alternativa é usar a conversão manual:
-              // const excelDate = Math.floor(date.getTime() / (1000 * 60 * 60 * 24) + 25569);
-              // ws[cellAddress].v = excelDate;
-              ws[cellAddress].v = XLSX.utils.date_to_num(date, { date1904: false }); // Tenta novamente com date_to_num
+              // --- CORREÇÃO FINAL PARA DATA: CONVERSÃO MANUAL PARA NÚMERO DE SÉRIE DO EXCEL ---
+              // Esta é a abordagem mais robusta para evitar o erro "date_to_num is not a function"
+              // Calcula o número de dias desde 30/12/1899 (época do Excel)
+              const excelEpoch = new Date(Date.UTC(1899, 11, 30)); // 30 de dezembro de 1899
+              const diffTime = date.getTime() - excelEpoch.getTime(); // Diferença em milissegundos
+              const excelDate = diffTime / (1000 * 60 * 60 * 24); // Diferença em dias
+
+              ws[cellAddress].v = excelDate; // Atribui o número de série
               ws[cellAddress].t = 'n'; // Tipo número
               cellStyle.numFmt = 'DD/MM/YYYY'; // Formato de data
             } else {
@@ -565,7 +568,7 @@ function App() {
             </div>
           </div>
         </div>
-        {error && <p className="error-message">{error}</p>}
+        {error && <p className="error-message">Erro: {error}</p>} {/* Exibe o erro de forma mais clara */}
       </header>
 
       {data.length > 0 && (
@@ -576,7 +579,7 @@ function App() {
                 {tableHeaders.map(header => (
                   <th key={header} className={`col-${normalizeForComparison(header).replace(/[^a-z0-9]/g, '-')}`}>
                     <div className="th-content">
-                      <div className="header-text" onClick={() => handleSort(header)}>
+                      <div className="header-text" onClick={() => toggleFilterDropdown(header)}> {/* Alterado para toggleFilterDropdown */}
                         {header}
                         {sortColumn === header ? (
                           sortDirection === 'asc' ? (
