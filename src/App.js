@@ -424,7 +424,8 @@ function App() {
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pendentes");
-    XLSX.writeFile(wb, `Pendentes_Hoje_${todayFormatted}.xlsx`);
+    XLSX.writeFile(wb, `pendencias.xlsx`);
+
   }, [filteredAndSortedData, isOverdue, isDueToday, tableHeaders, getRowClass, getJustificativaCellStyle, getJustificativaCellText, formatDataLimite, todayFormatted]);
 
 
@@ -458,7 +459,7 @@ function App() {
               <FontAwesomeIcon icon={faFileExcel} /> Exportar Pendentes Hoje
             </button>
             <div className="overdue-count">
-              Pendentes Hoje: {overdueCount}
+              pendencias
             </div>
           </div>
         </div>
