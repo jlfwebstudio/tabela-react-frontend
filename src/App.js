@@ -73,13 +73,7 @@ function App() {
   }, []);
 
   // Formata a data de hoje para o nome do arquivo Excel
-  const todayFormatted = useMemo(() => {
-    const d = new Date();
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-  }, []);
+ 
 
   // Verifica se a OS está atrasada
   const isOverdue = useCallback((row) => {
