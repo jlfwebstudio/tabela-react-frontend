@@ -318,9 +318,7 @@ function App() {
     return sortedData;
   }, [data, searchTerm, selectedFilterOptions, sortColumn, sortDirection, tableHeaders, normalizeForComparison, parseDateForComparison]);
 
-  const overdueCount = useMemo(() => {
-    return filteredAndSortedData.filter(row => isOverdue(row) || isDueToday(row)).length;
-  }, [filteredAndSortedData, isOverdue, isDueToday]);
+  
 
 
   const exportToExcel = useCallback(() => {
@@ -426,7 +424,7 @@ function App() {
     XLSX.utils.book_append_sheet(wb, ws, "Pendentes");
     XLSX.writeFile(wb, `pendencias.xlsx`);
 
-  }, [filteredAndSortedData, isOverdue, isDueToday, tableHeaders, getRowClass, getJustificativaCellStyle, getJustificativaCellText, formatDataLimite, todayFormatted]);
+  }, [filteredAndSortedData, isOverdue, isDueToday, tableHeaders, getRowClass, getJustificativaCellStyle, getJustificativaCellText, formatDataLimite]);
 
 
   return (
